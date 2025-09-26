@@ -1,3 +1,13 @@
+# SI-APD (Sistem Informasi APD)
+
+Sistem Informasi Alat Pelindung Diri - Aplikasi web untuk manajemen APD di lingkungan Poltekkes Kemenkes Yogyakarta.
+
+## Dokumentasi
+
+- 📋 [Color Palette Guide](./docs/colors.md) - Panduan lengkap penggunaan warna biru dalam proyek ini
+
+## Tech Stack
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

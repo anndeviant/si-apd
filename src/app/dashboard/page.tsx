@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import Image from "next/image";
 import { User } from "@supabase/supabase-js";
 import {
   User as UserIcon,
@@ -14,6 +13,18 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import Header from "@/components/header";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -47,34 +58,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header dengan Logo */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo Kiri */}
-            <div className="flex-shrink-0">
-              <Image
-                src="/logopal.png"
-                alt="Logo PAL"
-                width={120}
-                height={40}
-                className="h-10 w-auto"
-              />
-            </div>
-
-            {/* Logo Kanan */}
-            <div className="flex-shrink-0">
-              <Image
-                src="/logorekum.png"
-                alt="Logo Rekum"
-                width={120}
-                height={40}
-                className="h-10 w-auto"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      <Header />
 
       {/* Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -115,7 +99,10 @@ export default function DashboardPage() {
           {/* Action Buttons Grid */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             {/* Row 1 */}
-            <button className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2">
+            <button
+              onClick={() => router.push("/dashboard/pengajuan")}
+              className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2"
+            >
               <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center border border-blue-100">
                 <FileText className="w-6 h-6 text-blue-600" />
               </div>
@@ -125,7 +112,10 @@ export default function DashboardPage() {
               </div>
             </button>
 
-            <button className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2">
+            <button
+              onClick={() => router.push("/dashboard/distribusi")}
+              className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2"
+            >
               <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center border border-green-100">
                 <Package className="w-6 h-6 text-green-600" />
               </div>
@@ -135,7 +125,10 @@ export default function DashboardPage() {
               </div>
             </button>
 
-            <button className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2">
+            <button
+              onClick={() => router.push("/dashboard/rekapitulasi")}
+              className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2"
+            >
               <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100">
                 <BarChart3 className="w-6 h-6 text-purple-600" />
               </div>
@@ -146,7 +139,10 @@ export default function DashboardPage() {
             </button>
 
             {/* Row 2 */}
-            <button className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2">
+            <button
+              onClick={() => router.push("/dashboard/tentang")}
+              className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2"
+            >
               <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center border border-orange-100">
                 <Info className="w-6 h-6 text-orange-600" />
               </div>
@@ -155,7 +151,10 @@ export default function DashboardPage() {
               </span>
             </button>
 
-            <button className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2">
+            <button
+              onClick={() => router.push("/dashboard/pengaturan")}
+              className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2"
+            >
               <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100">
                 <Settings className="w-6 h-6 text-gray-600" />
               </div>
@@ -164,17 +163,35 @@ export default function DashboardPage() {
               </span>
             </button>
 
-            <button
-              onClick={handleLogout}
-              className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2"
-            >
-              <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center border border-red-100">
-                <LogOut className="w-6 h-6 text-red-600" />
-              </div>
-              <span className="text-xs text-center font-medium text-gray-700">
-                Keluar
-              </span>
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow duration-200 flex flex-col items-center space-y-2">
+                  <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center border border-red-100">
+                    <LogOut className="w-6 h-6 text-red-600" />
+                  </div>
+                  <span className="text-xs text-center font-medium text-gray-700">
+                    Keluar
+                  </span>
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Apakah Anda yakin ingin keluar dari aplikasi?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleLogout}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Ya, Keluar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 

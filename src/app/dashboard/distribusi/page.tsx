@@ -13,6 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Header from "@/components/header";
+import { ApdProvider } from "@/contexts/apd-context";
+import { BengkelProvider } from "@/contexts/bengkel-context";
+import KonsumableHarianForm from "@/app/_components/konsumable-harian-form";
 
 export default function DistribusiPage() {
   const router = useRouter();
@@ -68,12 +71,14 @@ export default function DistribusiPage() {
       case "konsumable-harian":
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
               Konsumable (Harian)
             </h3>
-            <p className="text-gray-600">
-              Konten Konsumable Harian akan ditampilkan di sini...
-            </p>
+            <ApdProvider>
+              <BengkelProvider>
+                <KonsumableHarianForm />
+              </BengkelProvider>
+            </ApdProvider>
           </div>
         );
       default:
@@ -107,7 +112,7 @@ export default function DistribusiPage() {
             Pilih Jenis Distribusi
           </label>
           <Select value={selectedOption} onValueChange={setSelectedOption}>
-            <SelectTrigger className="w-full max-w-md">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Pilih jenis distribusi" />
             </SelectTrigger>
             <SelectContent>

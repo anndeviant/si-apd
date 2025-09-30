@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Header from "@/components/header";
+import PengajuanProject from "@/app/_components/pengajuan-project";
+import PengajuanKpi from "@/app/_components/pengajuan-kpi";
 
 export default function PengajuanPage() {
   const router = useRouter();
@@ -44,25 +46,9 @@ export default function PengajuanPage() {
   const renderContent = () => {
     switch (selectedOption) {
       case "project":
-        return (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Project
-            </h3>
-            <p className="text-gray-600">
-              Konten Project akan ditampilkan di sini...
-            </p>
-          </div>
-        );
+        return <PengajuanProject userId={user.id} />;
       case "kpi":
-        return (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">KPI</h3>
-            <p className="text-gray-600">
-              Konten KPI akan ditampilkan di sini...
-            </p>
-          </div>
-        );
+        return <PengajuanKpi userId={user.id} />;
       default:
         return null;
     }
@@ -99,7 +85,7 @@ export default function PengajuanPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="project">Project</SelectItem>
-              <SelectItem value="kpi">KPI</SelectItem>
+              <SelectItem value="kpi">Pengajuan KPI - APD</SelectItem>
             </SelectContent>
           </Select>
         </div>

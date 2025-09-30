@@ -96,3 +96,23 @@ export interface BatchRekapData {
     created_count: number;
     updated_count: number;
 }
+
+export interface ApdFiles {
+    id: number;
+    created_at: string;
+    template_mr?: string;
+    berita_serah_terima?: string;
+    pengajuan_apd?: string;
+}
+
+export interface CreateApdFilesData {
+    template_mr?: string;
+    berita_serah_terima?: string;
+    pengajuan_apd?: string;
+}
+
+export interface UpdateApdFilesData {
+    template_mr?: string;
+    berita_serah_terima?: string;
+    pengajuan_apd?: string;
+}

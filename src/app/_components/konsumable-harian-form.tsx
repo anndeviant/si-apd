@@ -110,10 +110,11 @@ export default function KonsumableHarianForm() {
               id="jumlah"
               type="number"
               min="1"
-              value={formData.qty}
+              value={formData.qty === 1 ? "" : formData.qty}
               onChange={(e) =>
                 updateField("qty", parseInt(e.target.value) || 1)
               }
+              placeholder="1"
               disabled={isSubmitting}
               required
             />

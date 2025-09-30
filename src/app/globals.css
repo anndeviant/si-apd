@@ -129,4 +129,26 @@
   input[type="password"]::-webkit-textfield-decoration-container {
     display: none;
   }
+
+  /* Custom table scrolling for mobile */
+  .table-scroll-container {
+    @apply overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
 }

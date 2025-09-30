@@ -13,6 +13,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Header from "@/components/header";
+import { ApdProvider } from "@/contexts/apd-context";
+import { BengkelProvider } from "@/contexts/bengkel-context";
+import PengeluaranPekerjaForm from "@/app/_components/pengeluaran-pekerja-form";
+import { BatchRekapForm } from "@/app/_components/batch-rekap-form";
+import { StockOpnameForm } from "@/app/_components/stock-opname-form";
 
 export default function RekapitulasiPage() {
   const router = useRouter();
@@ -46,34 +51,37 @@ export default function RekapitulasiPage() {
       case "stock-opname":
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Stock Opname
-            </h3>
-            <p className="text-gray-600">
-              Konten Stock Opname akan ditampilkan di sini...
-            </p>
+            <ApdProvider>
+              <BengkelProvider>
+                <StockOpnameForm />
+              </BengkelProvider>
+            </ApdProvider>
           </div>
         );
       case "pengeluaran":
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Pengeluaran
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              Pengeluaran (Neraca APD Bulanan)
             </h3>
-            <p className="text-gray-600">
-              Konten Pengeluaran akan ditampilkan di sini...
-            </p>
+            <ApdProvider>
+              <BengkelProvider>
+                <BatchRekapForm />
+              </BengkelProvider>
+            </ApdProvider>
           </div>
         );
       case "pengeluaran-pekerja":
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Pengeluaran Pekerja (Bulan)
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              Pengeluaran Pekerja (Harian)
             </h3>
-            <p className="text-gray-600">
-              Konten Pengeluaran Pekerja bulanan akan ditampilkan di sini...
-            </p>
+            <ApdProvider>
+              <BengkelProvider>
+                <PengeluaranPekerjaForm />
+              </BengkelProvider>
+            </ApdProvider>
           </div>
         );
       default:
@@ -112,9 +120,11 @@ export default function RekapitulasiPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="stock-opname">Stock Opname</SelectItem>
-              <SelectItem value="pengeluaran">Pengeluaran</SelectItem>
+              <SelectItem value="pengeluaran">
+                Pengeluaran (Neraca APD)
+              </SelectItem>
               <SelectItem value="pengeluaran-pekerja">
-                Pengeluaran Pekerja (Bulan)
+                Pengeluaran Pekerja (Harian)
               </SelectItem>
             </SelectContent>
           </Select>

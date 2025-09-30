@@ -227,7 +227,7 @@ export async function fetchApdMonthly(filters?: {
         .from('apd_monthly')
         .select(`
             *,
-            apd_items(id, name, satuan)
+            apd_items(id, name, satuan, jumlah)
         `)
         .order('apd_id', { ascending: true });
 
@@ -244,7 +244,14 @@ export async function fetchApdMonthly(filters?: {
         throw new Error(`Failed to fetch APD monthly data: ${error.message}`);
     }
 
-    return data || [];
+    // Sinkronisasi stock_awal dengan apd_items.jumlah (real-time)
+    const syncedData = (data || []).map(item => ({
+        ...item,
+        stock_awal: item.apd_items?.jumlah || item.stock_awal || 0,
+        saldo_akhir: (item.apd_items?.jumlah || item.stock_awal || 0) + (item.realisasi || 0) - (item.distribusi || 0)
+    }));
+
+    return syncedData;
 }
 
 export async function getAvailableMonthlyPeriods(): Promise<string[]> {
@@ -300,14 +307,14 @@ export async function generateBatchRekap(periode: string): Promise<BatchRekapDat
 
     if (error) {
         // Jika stored procedure belum ada, gunakan fallback method
-        return await generateBatchRekapFallback(periode, previousPeriode);
+        return await generateBatchRekapFallback(periode);
     }
 
     return data;
 }
 
 // Fallback method jika stored procedure belum tersedia
-async function generateBatchRekapFallback(periode: string, previousPeriode: string): Promise<BatchRekapData> {
+async function generateBatchRekapFallback(periode: string): Promise<BatchRekapData> {
     try {
         // Untuk matching bulan, kita perlu extract year dan month dari periode
         const periodeDate = new Date(periode);
@@ -365,15 +372,8 @@ async function generateBatchRekapFallback(periode: string, previousPeriode: stri
         let updatedCount = 0;
 
         for (const item of apdItems || []) {
-            // Ambil stock awal dari bulan sebelumnya
-            const { data: previousMonth } = await supabase
-                .from('apd_monthly')
-                .select('saldo_akhir')
-                .eq('apd_id', item.id)
-                .eq('periode', previousPeriode)
-                .single();
-
-            const stockAwal = previousMonth?.saldo_akhir || 0;
+            // Ambil stock awal dari apd_items.jumlah (konsep baru)
+            const stockAwal = item.jumlah || 0;
 
             // Hitung total distribusi dari apd_daily
             const { data: dailyTotal } = await supabase
@@ -444,6 +444,21 @@ async function generateBatchRekapFallback(periode: string, previousPeriode: stri
     } catch (error) {
         throw new Error(`Failed to generate batch rekap: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+}
+
+// Function untuk mendapatkan stock awal real-time dari apd_items
+export async function getApdItemStockAwal(apdId: number): Promise<number> {
+    const { data, error } = await supabase
+        .from('apd_items')
+        .select('jumlah')
+        .eq('id', apdId)
+        .single();
+
+    if (error) {
+        throw new Error(`Failed to fetch APD item stock: ${error.message}`);
+    }
+
+    return data?.jumlah || 0;
 }
 
 export async function updateApdMonthly(

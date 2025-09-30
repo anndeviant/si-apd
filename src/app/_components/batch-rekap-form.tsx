@@ -33,6 +33,7 @@ interface EditModalData {
   nama: string;
   realisasi: number;
   stockAwal: number;
+  distribusi: number;
 }
 
 export function BatchRekapForm() {
@@ -65,12 +66,13 @@ export function BatchRekapForm() {
   };
 
   const handleEditClick = (item: ApdMonthlyWithRelations) => {
-    // Set data for local modal state
+    // Set data for local modal state - stock awal dari apd_items.jumlah (real-time)
     setEditData({
       id: item.id,
       nama: item.apd_items?.name || "-",
       realisasi: item.realisasi || 0,
-      stockAwal: item.stock_awal || 0,
+      stockAwal: item.apd_items?.jumlah || 0, // Real-time dari apd_items
+      distribusi: item.distribusi || 0, // Distribusi dari Pengeluaran APD
     });
 
     // Set data for hook state (needed for save)
@@ -81,15 +83,13 @@ export function BatchRekapForm() {
   const handleSaveEdit = async () => {
     if (!editData) return;
 
-    console.log("Saving edit data:", editData);
+    console.log("Saving edit data (realisasi only):", editData);
 
-    // Update hook state first
-    updateEditFormData("stock_awal", editData.stockAwal);
+    // Update hook state first (hanya realisasi)
     updateEditFormData("realisasi", editData.realisasi);
 
-    // Call save directly with the data we want to save
+    // Call save directly dengan hanya realisasi (stock_awal tetap dari database)
     const success = await saveEditWithData(editData.id, {
-      stock_awal: editData.stockAwal,
       realisasi: editData.realisasi,
     });
 
@@ -343,23 +343,21 @@ export function BatchRekapForm() {
           <AlertDialogHeader>
             <AlertDialogTitle>Edit Data Neraca</AlertDialogTitle>
             <AlertDialogDescription>
-              Edit stock awal dan realisasi untuk {editData?.nama}
+              Edit realisasi untuk {editData?.nama}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           {editData && (
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Stock Awal</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Stock Awal (dari Stock Opname)
+                </label>
                 <Input
                   type="number"
                   value={editData.stockAwal}
-                  onChange={(e) =>
-                    setEditData({
-                      ...editData,
-                      stockAwal: parseInt(e.target.value) || 0,
-                    })
-                  }
+                  readOnly
+                  className="bg-gray-50 text-gray-500"
                   min="0"
                 />
               </div>
@@ -375,6 +373,19 @@ export function BatchRekapForm() {
                       realisasi: parseInt(e.target.value) || 0,
                     })
                   }
+                  min="0"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-500">
+                  Distribusi (dari Pengeluaran APD)
+                </label>
+                <Input
+                  type="number"
+                  value={editData.distribusi}
+                  readOnly
+                  className="bg-gray-50 text-gray-500"
                   min="0"
                 />
               </div>

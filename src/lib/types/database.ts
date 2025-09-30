@@ -3,6 +3,7 @@ export interface ApdItem {
     created_at: string;
     name: string;
     satuan?: string;
+    jumlah?: number;
 }
 
 export interface ApdBengkel {

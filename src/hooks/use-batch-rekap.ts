@@ -91,7 +91,7 @@ export function useBatchRekap() {
 
             setSuccessMessage('Batch rekap berhasil!');
 
-            // Reload data after successful generation
+            // Reload data after successful generation (akan otomatis sinkron dengan apd_items.jumlah)
             await loadMonthlyData();
             await loadAvailablePeriods();
 
@@ -109,7 +109,7 @@ export function useBatchRekap() {
         setEditingRow(row.id);
         setEditFormData({
             id: row.id,
-            stock_awal: row.stock_awal || 0,
+            stock_awal: row.apd_items?.jumlah || 0, // Real-time dari apd_items
             realisasi: row.realisasi || 0
         });
     };
@@ -186,21 +186,8 @@ export function useBatchRekap() {
             await updateApdMonthly(id, updateData);
             console.log('Database update completed');
 
-            // Update local state
-            setMonthlyData(prev =>
-                prev.map(item =>
-                    item.id === id
-                        ? {
-                            ...item,
-                            stock_awal: updateData.stock_awal || item.stock_awal,
-                            realisasi: updateData.realisasi || item.realisasi,
-                            saldo_akhir: (updateData.stock_awal || item.stock_awal || 0) +
-                                (updateData.realisasi || item.realisasi || 0) -
-                                (item.distribusi || 0)
-                        }
-                        : item
-                )
-            );
+            // Refresh data dari database untuk mendapatkan nilai terbaru (termasuk sinkronisasi stock_awal)
+            await loadMonthlyData();
 
             setSuccessMessage('Data berhasil diupdate!');
             return true;

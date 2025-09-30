@@ -17,6 +17,7 @@ import { ApdProvider } from "@/contexts/apd-context";
 import { BengkelProvider } from "@/contexts/bengkel-context";
 import PengeluaranPekerjaForm from "@/app/_components/pengeluaran-pekerja-form";
 import { BatchRekapForm } from "@/app/_components/batch-rekap-form";
+import { StockOpnameForm } from "@/app/_components/stock-opname-form";
 
 export default function RekapitulasiPage() {
   const router = useRouter();
@@ -50,12 +51,11 @@ export default function RekapitulasiPage() {
       case "stock-opname":
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Stock Opname
-            </h3>
-            <p className="text-gray-600">
-              Konten Stock Opname akan ditampilkan di sini...
-            </p>
+            <ApdProvider>
+              <BengkelProvider>
+                <StockOpnameForm />
+              </BengkelProvider>
+            </ApdProvider>
           </div>
         );
       case "pengeluaran":

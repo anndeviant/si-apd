@@ -55,3 +55,43 @@ export interface PengeluaranPekerjaData {
     satuan: string;
     periode: string;
 }
+
+export interface ApdMonthly {
+    id: number;
+    created_at: string;
+    apd_id?: number;
+    periode?: string;
+    stock_awal?: number;
+    realisasi?: number;
+    distribusi?: number;
+    saldo_akhir?: number;
+    satuan?: string;
+}
+
+export interface ApdMonthlyWithRelations extends ApdMonthly {
+    apd_items?: ApdItem;
+}
+
+export interface CreateApdMonthlyData {
+    apd_id: number;
+    periode: string;
+    stock_awal: number;
+    realisasi: number;
+    distribusi: number;
+    saldo_akhir: number;
+    satuan?: string;
+}
+
+export interface UpdateApdMonthlyData {
+    stock_awal?: number;
+    realisasi?: number;
+    distribusi?: number;
+    saldo_akhir?: number;
+}
+
+export interface BatchRekapData {
+    periode: string;
+    total_items: number;
+    created_count: number;
+    updated_count: number;
+}

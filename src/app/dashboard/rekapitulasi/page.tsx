@@ -16,6 +16,7 @@ import Header from "@/components/header";
 import { ApdProvider } from "@/contexts/apd-context";
 import { BengkelProvider } from "@/contexts/bengkel-context";
 import PengeluaranPekerjaForm from "@/app/_components/pengeluaran-pekerja-form";
+import { BatchRekapForm } from "@/app/_components/batch-rekap-form";
 
 export default function RekapitulasiPage() {
   const router = useRouter();
@@ -60,12 +61,14 @@ export default function RekapitulasiPage() {
       case "pengeluaran":
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Pengeluaran
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              Pengeluaran (Neraca APD Bulanan)
             </h3>
-            <p className="text-gray-600">
-              Konten Pengeluaran akan ditampilkan di sini...
-            </p>
+            <ApdProvider>
+              <BengkelProvider>
+                <BatchRekapForm />
+              </BengkelProvider>
+            </ApdProvider>
           </div>
         );
       case "pengeluaran-pekerja":

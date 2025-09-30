@@ -39,3 +39,19 @@ export interface CreateApdDailyData {
     qty: number;
     periode: string;
 }
+
+export interface ApdDailyWithRelations extends ApdDaily {
+    apd_items?: ApdItem;
+    apd_bengkel?: ApdBengkel;
+}
+
+export interface PengeluaranPekerjaData {
+    id: number;
+    nama: string;
+    tanggal: string;
+    bengkel_name: string;
+    apd_name: string;
+    qty: number;
+    satuan: string;
+    periode: string;
+}

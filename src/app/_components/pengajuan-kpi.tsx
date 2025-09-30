@@ -24,11 +24,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Download, Upload, Trash2, FileText } from "lucide-react";
 
-interface PengajuanProjectProps {
+interface PengajuanKpiProps {
   userId: string;
 }
 
-export default function PengajuanProject({ userId }: PengajuanProjectProps) {
+export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [fileRecordId, setFileRecordId] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -40,11 +40,11 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
   useEffect(() => {
     const loadExistingFile = async () => {
       try {
-        // Get the latest record with template_mr for this user/session
+        // Get the latest record with pengajuan_apd for this user/session
         const { data, error } = await supabase
           .from("apd_files")
-          .select("id, template_mr")
-          .not("template_mr", "is", null)
+          .select("id, pengajuan_apd")
+          .not("pengajuan_apd", "is", null)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -55,9 +55,9 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
           return;
         }
 
-        if (data && data.template_mr) {
+        if (data && data.pengajuan_apd) {
           // Extract file path from public URL to get storage path
-          const urlParts = data.template_mr.split("/");
+          const urlParts = data.pengajuan_apd.split("/");
           const fileName = `docs/${urlParts[urlParts.length - 1]}`;
 
           // Verify file still exists in storage
@@ -70,7 +70,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
             console.log("File not found in storage, cleaning database record");
             await supabase
               .from("apd_files")
-              .update({ template_mr: null })
+              .update({ pengajuan_apd: null })
               .eq("id", data.id);
           } else {
             // File exists, set states
@@ -107,7 +107,10 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
       const now = new Date();
       const dateStr = now.toISOString().split("T")[0]; // Format: YYYY-MM-DD
       const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, ""); // Format: HHMMSS
-      const downloadName = `Template_MR_${dateStr}_${timeStr}.xlsx`;
+
+      // Get file extension from uploaded file
+      const fileExtension = uploadedFile.split(".").pop() || "doc";
+      const downloadName = `Pengajuan_KPI_${dateStr}_${timeStr}.${fileExtension}`;
 
       const url = URL.createObjectURL(data);
       const link = document.createElement("a");
@@ -129,7 +132,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
 
     setIsUploading(true);
     try {
-      const fileName = `docs/mr-${userId}-${Date.now()}.${file.name
+      const fileName = `docs/kpi-${userId}-${Date.now()}.${file.name
         .split(".")
         .pop()}`;
 
@@ -159,7 +162,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
         // Update existing record
         const { error: updateError } = await supabase
           .from("apd_files")
-          .update({ template_mr: publicUrl })
+          .update({ pengajuan_apd: publicUrl })
           .eq("id", fileRecordId);
 
         if (updateError) {
@@ -171,7 +174,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
         // Insert new record
         const { data: insertData, error: insertError } = await supabase
           .from("apd_files")
-          .insert({ template_mr: publicUrl })
+          .insert({ pengajuan_apd: publicUrl })
           .select("id")
           .single();
 
@@ -211,10 +214,10 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
         return;
       }
 
-      // Delete from database (set template_mr to null or delete record)
+      // Delete from database (set pengajuan_apd to null or delete record)
       const { error: dbError } = await supabase
         .from("apd_files")
-        .update({ template_mr: null })
+        .update({ pengajuan_apd: null })
         .eq("id", fileRecordId);
 
       if (dbError) {
@@ -240,14 +243,18 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type (Excel files)
+      // Validate file type (Word and Excel files)
       const allowedTypes = [
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+        "application/msword", // .doc
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+        "application/vnd.ms-excel", // .xls
       ];
 
       if (!allowedTypes.includes(file.type)) {
-        toast.error("Hanya file Excel (.xlsx, .xls) yang diperbolehkan.");
+        toast.error(
+          "Hanya file Word (.docx, .doc) dan Excel (.xlsx, .xls) yang diperbolehkan."
+        );
         return;
       }
 
@@ -271,11 +278,11 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <FileText className="w-5 h-5" />
-          <span>Material Request (MR) Project</span>
+          <span>Pengajuan KPI - APD</span>
         </CardTitle>
         <CardDescription>
-          Pengajuan kebutuhan material untuk project dengan menggunakan template
-          standar Material Request.
+          Upload dokumen pengajuan Key Performance Indicator (KPI) untuk
+          manajemen dan evaluasi kinerja distribusi APD.
         </CardDescription>
       </CardHeader>
 
@@ -294,7 +301,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
                 className="flex items-center justify-center space-x-2 w-full"
               >
                 <Upload className="w-4 h-4" />
-                <span>{isUploading ? "Mengupload..." : "Upload File MR"}</span>
+                <span>{isUploading ? "Mengupload..." : "Upload File Pengajuan APD"}</span>
               </Button>
             </div>
           ) : (
@@ -302,7 +309,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
               <div className="flex items-center space-x-2 text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3">
                 <FileText className="w-4 h-4" />
                 <span className="text-sm font-medium">
-                  File Template MR berhasil diupload
+                  File Pengajuan APD berhasil diupload
                 </span>
               </div>
 
@@ -344,8 +351,8 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
                           Konfirmasi Hapus File
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Apakah Anda yakin ingin menghapus file Material
-                          Request yang telah diupload? Tindakan ini tidak dapat
+                          Apakah Anda yakin ingin menghapus file Pengajuan APD
+                          yang telah diupload? Tindakan ini tidak dapat
                           dibatalkan.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
@@ -369,7 +376,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".xlsx,.xls"
+            accept=".docx,.doc,.xlsx,.xls"
             onChange={handleFileInputChange}
             className="hidden"
           />
@@ -380,15 +387,16 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
           <h4 className="font-medium text-gray-900 mb-2">Informasi Penting:</h4>
           <ul className="text-sm text-gray-600 space-y-1">
             <li>
-              • File yang diupload harus berformat Excel (.xlsx atau .xls)
+              • File yang diupload harus berformat Word (.docx, .doc) atau Excel
+              (.xlsx, .xls)
             </li>
             <li>• Ukuran file maksimal 10MB</li>
             <li>
-              • Pastikan semua kolom telah diisi dengan lengkap sesuai template
+              • Pastikan dokumen Pengajuan APD telah diisi dengan lengkap sesuai template
             </li>
             <li>
               • File yang diupload akan disimpan secara aman dan dapat diakses
-              oleh tim terkait
+              oleh tim manajemen untuk evaluasi kinerja
             </li>
           </ul>
         </div>

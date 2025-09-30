@@ -20,12 +20,20 @@ CREATE TABLE public.apd_daily (
   CONSTRAINT apd_daily_apd_id_fkey FOREIGN KEY (apd_id) REFERENCES public.apd_items(id),
   CONSTRAINT apd_daily_bengkel_id_fkey FOREIGN KEY (bengkel_id) REFERENCES public.apd_bengkel(id)
 );
+CREATE TABLE public.apd_files (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  template_mr text,
+  berita_serah_terima text,
+  pengajuan_apd text,
+  CONSTRAINT apd_files_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.apd_items (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   name text NOT NULL DEFAULT ''::text UNIQUE,
   satuan text,
-  jumlah bigint DEFAULT '0'::bigint,
+  jumlah bigint,
   CONSTRAINT apd_items_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.apd_monthly (

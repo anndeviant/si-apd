@@ -94,7 +94,7 @@ export default function PengajuanPage() {
             Pilih Jenis Pengajuan
           </label>
           <Select value={selectedOption} onValueChange={setSelectedOption}>
-            <SelectTrigger className="w-full max-w-md">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Pilih jenis pengajuan" />
             </SelectTrigger>
             <SelectContent>

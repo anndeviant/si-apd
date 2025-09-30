@@ -107,7 +107,7 @@ export default function RekapitulasiPage() {
             Pilih Jenis Rekapitulasi
           </label>
           <Select value={selectedOption} onValueChange={setSelectedOption}>
-            <SelectTrigger className="w-full max-w-md">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Pilih jenis rekapitulasi" />
             </SelectTrigger>
             <SelectContent>

@@ -147,7 +147,7 @@ export default function DashboardPage() {
                 <Info className="w-6 h-6 text-orange-600" />
               </div>
               <span className="text-xs text-center font-medium text-gray-700">
-                Tentang Kami
+                Tentang
               </span>
             </button>
 

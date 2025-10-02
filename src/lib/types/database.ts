@@ -100,19 +100,52 @@ export interface BatchRekapData {
 export interface ApdFiles {
     id: number;
     created_at: string;
-    template_mr?: string;
-    berita_serah_terima?: string;
-    pengajuan_apd?: string;
+    file_url: string;
+    nama_file: string;
+    jenis_file: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd';
+    user_id?: string;
 }
 
 export interface CreateApdFilesData {
-    template_mr?: string;
-    berita_serah_terima?: string;
-    pengajuan_apd?: string;
+    file_url: string;
+    nama_file: string;
+    jenis_file: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd';
+    user_id?: string;
 }
 
 export interface UpdateApdFilesData {
-    template_mr?: string;
-    berita_serah_terima?: string;
-    pengajuan_apd?: string;
+    file_url?: string;
+    nama_file?: string;
+    jenis_file?: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd';
+    user_id?: string;
+}
+
+// APD Peminjaman types
+export interface ApdPeminjaman {
+    id: number;
+    created_at: string;
+    nama_peminjam: string;
+    divisi: string;
+    nama_apd: string;
+    tanggal_pinjam: string;
+    tanggal_kembali?: string;
+    status: string;
+}
+
+export interface CreateApdPeminjamanData {
+    nama_peminjam: string;
+    divisi: string;
+    nama_apd: string;
+    tanggal_pinjam: string;
+    tanggal_kembali?: string;
+    status: string;
+}
+
+export interface UpdateApdPeminjamanData {
+    nama_peminjam?: string;
+    divisi?: string;
+    nama_apd?: string;
+    tanggal_pinjam?: string;
+    tanggal_kembali?: string;
+    status?: string;
 }

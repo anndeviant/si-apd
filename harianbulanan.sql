@@ -23,9 +23,10 @@ CREATE TABLE public.apd_daily (
 CREATE TABLE public.apd_files (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
-  template_mr text,
-  berita_serah_terima text,
-  pengajuan_apd text,
+  file_url text,
+  nama_file text,
+  jenis_file text,
+  user_id text,
   CONSTRAINT apd_files_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.apd_items (
@@ -48,4 +49,15 @@ CREATE TABLE public.apd_monthly (
   satuan text,
   CONSTRAINT apd_monthly_pkey PRIMARY KEY (id),
   CONSTRAINT apd_monthly_apd_id_fkey FOREIGN KEY (apd_id) REFERENCES public.apd_items(id)
+);
+CREATE TABLE public.apd_peminjaman (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  nama_peminjam text,
+  divisi text,
+  nama_apd text,
+  tanggal_pinjam date,
+  tanggal_kembali date,
+  status text DEFAULT 'Dipinjam'::text,
+  CONSTRAINT apd_peminjaman_pkey PRIMARY KEY (id)
 );

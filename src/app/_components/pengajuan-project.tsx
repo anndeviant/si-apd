@@ -28,74 +28,86 @@ interface PengajuanProjectProps {
   userId: string;
 }
 
+interface FileRecord {
+  id: number;
+  file_url: string;
+  nama_file: string;
+  created_at: string;
+  storage_path: string;
+}
+
 export default function PengajuanProject({ userId }: PengajuanProjectProps) {
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
-  const [fileRecordId, setFileRecordId] = useState<number | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<FileRecord[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingFileId, setDeletingFileId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load existing file record on mount
+  // Load existing files on mount
   useEffect(() => {
-    const loadExistingFile = async () => {
+    const loadExistingFiles = async () => {
       try {
-        // Get the latest record with template_mr for this user/session
+        // Get all records with jenis_file 'template_mr' for this user
         const { data, error } = await supabase
           .from("apd_files")
-          .select("id, template_mr")
-          .not("template_mr", "is", null)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .select("id, file_url, nama_file, created_at")
+          .eq("jenis_file", "template_mr")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
 
-        if (error && error.code !== "PGRST116") {
-          // PGRST116 = no rows returned
-          console.error("Error loading existing file:", error);
+        if (error) {
+          console.error("Error loading existing files:", error);
           return;
         }
 
-        if (data && data.template_mr) {
-          // Extract file path from public URL to get storage path
-          const urlParts = data.template_mr.split("/");
-          const fileName = `docs/${urlParts[urlParts.length - 1]}`;
+        if (data && data.length > 0) {
+          // Verify each file still exists in storage and cleanup if not
+          const validFiles: FileRecord[] = [];
 
-          // Verify file still exists in storage
-          const { error: storageCheckError } = await supabase.storage
-            .from("apd-files")
-            .download(fileName);
+          for (const file of data) {
+            const urlParts = file.file_url.split("/");
+            const fileName = `docs/${urlParts[urlParts.length - 1]}`;
 
-          if (storageCheckError) {
-            // File doesn't exist in storage, clean up database
-            console.log("File not found in storage, cleaning database record");
-            await supabase
-              .from("apd_files")
-              .update({ template_mr: null })
-              .eq("id", data.id);
-          } else {
-            // File exists, set states
-            setUploadedFile(fileName);
-            setFileRecordId(data.id);
+            const { error: storageCheckError } = await supabase.storage
+              .from("apd-files")
+              .download(fileName);
+
+            if (storageCheckError) {
+              // File doesn't exist in storage, clean up database
+              console.log(
+                `File not found in storage, deleting database record for ID: ${file.id}`
+              );
+              await supabase.from("apd_files").delete().eq("id", file.id);
+            } else {
+              // File exists, add to valid files
+              validFiles.push({
+                id: file.id,
+                file_url: file.file_url,
+                nama_file: file.nama_file,
+                created_at: file.created_at,
+                storage_path: fileName,
+              });
+            }
           }
+
+          setUploadedFiles(validFiles);
         }
       } catch (error) {
-        console.error("Error in loadExistingFile:", error);
+        console.error("Error in loadExistingFiles:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadExistingFile();
-  }, []);
+    loadExistingFiles();
+  }, [userId]);
 
-  // Download uploaded file
-  const handleDownloadFile = async () => {
-    if (!uploadedFile) return;
-
+  // Download specific file
+  const handleDownloadFile = async (file: FileRecord) => {
     try {
       const { data, error } = await supabase.storage
         .from("apd-files")
-        .download(uploadedFile);
+        .download(file.storage_path);
 
       if (error) {
         console.error("Download error:", error);
@@ -103,16 +115,11 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
         return;
       }
 
-      // Create download link with simplified filename
-      const now = new Date();
-      const dateStr = now.toISOString().split("T")[0]; // Format: YYYY-MM-DD
-      const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, ""); // Format: HHMMSS
-      const downloadName = `Template_MR_${dateStr}_${timeStr}.xlsx`;
-
+      // Create download link with original filename
       const url = URL.createObjectURL(data);
       const link = document.createElement("a");
       link.href = url;
-      link.download = downloadName;
+      link.download = file.nama_file;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -123,7 +130,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
     }
   };
 
-  // Handle file upload
+  // Handle new file upload
   const handleFileUpload = async (file: File) => {
     if (!file) return;
 
@@ -132,11 +139,6 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
       const fileName = `docs/mr-${userId}-${Date.now()}.${file.name
         .split(".")
         .pop()}`;
-
-      // If uploading over existing file, delete old file from storage first
-      if (uploadedFile) {
-        await supabase.storage.from("apd-files").remove([uploadedFile]);
-      }
 
       // Upload new file to storage
       const { error: uploadError } = await supabase.storage
@@ -154,37 +156,34 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
         data: { publicUrl },
       } = supabase.storage.from("apd-files").getPublicUrl(fileName);
 
-      // Update or insert database record
-      if (fileRecordId) {
-        // Update existing record
-        const { error: updateError } = await supabase
-          .from("apd_files")
-          .update({ template_mr: publicUrl })
-          .eq("id", fileRecordId);
+      // Insert new record
+      const { data: insertData, error: insertError } = await supabase
+        .from("apd_files")
+        .insert({
+          file_url: publicUrl,
+          nama_file: file.name,
+          jenis_file: "template_mr",
+          user_id: userId,
+        })
+        .select("id, created_at")
+        .single();
 
-        if (updateError) {
-          console.error("Database update error:", updateError);
-          toast.error("File berhasil diupload tapi gagal update database.");
-          return;
-        }
-      } else {
-        // Insert new record
-        const { data: insertData, error: insertError } = await supabase
-          .from("apd_files")
-          .insert({ template_mr: publicUrl })
-          .select("id")
-          .single();
-
-        if (insertError) {
-          console.error("Database insert error:", insertError);
-          toast.error("File berhasil diupload tapi gagal simpan ke database.");
-          return;
-        }
-
-        setFileRecordId(insertData.id);
+      if (insertError) {
+        console.error("Database insert error:", insertError);
+        toast.error("File berhasil diupload tapi gagal simpan ke database.");
+        return;
       }
 
-      setUploadedFile(fileName);
+      // Add new file to the list
+      const newFileRecord: FileRecord = {
+        id: insertData.id,
+        file_url: publicUrl,
+        nama_file: file.name,
+        created_at: insertData.created_at,
+        storage_path: fileName,
+      };
+
+      setUploadedFiles((prev) => [newFileRecord, ...prev]);
       toast.success("File berhasil diupload!");
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -194,16 +193,14 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
     }
   };
 
-  // Handle file delete
-  const handleFileDelete = async () => {
-    if (!uploadedFile || !fileRecordId) return;
-
-    setIsDeleting(true);
+  // Handle specific file delete
+  const handleFileDelete = async (file: FileRecord) => {
+    setDeletingFileId(file.id);
     try {
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from("apd-files")
-        .remove([uploadedFile]);
+        .remove([file.storage_path]);
 
       if (storageError) {
         console.error("Storage delete error:", storageError);
@@ -211,11 +208,11 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
         return;
       }
 
-      // Delete from database (set template_mr to null or delete record)
+      // Delete record from database
       const { error: dbError } = await supabase
         .from("apd_files")
-        .update({ template_mr: null })
-        .eq("id", fileRecordId);
+        .delete()
+        .eq("id", file.id);
 
       if (dbError) {
         console.error("Database delete error:", dbError);
@@ -223,14 +220,14 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
         return;
       }
 
-      setUploadedFile(null);
-      setFileRecordId(null);
+      // Remove file from the list
+      setUploadedFiles((prev) => prev.filter((f) => f.id !== file.id));
       toast.success("File berhasil dihapus!");
     } catch (error) {
       console.error("Error deleting file:", error);
       toast.error("Terjadi kesalahan saat menghapus file.");
     } finally {
-      setIsDeleting(false);
+      setDeletingFileId(null);
     }
   };
 
@@ -240,14 +237,19 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type (Excel files)
+      // Validate file type (Excel, PDF, Word files)
       const allowedTypes = [
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+        "application/vnd.ms-excel", // .xls
+        "application/pdf", // .pdf
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+        "application/msword", // .doc
       ];
 
       if (!allowedTypes.includes(file.type)) {
-        toast.error("Hanya file Excel (.xlsx, .xls) yang diperbolehkan.");
+        toast.error(
+          "Hanya file Excel (.xlsx, .xls), PDF (.pdf), dan Word (.docx, .doc) yang diperbolehkan."
+        );
         return;
       }
 
@@ -281,95 +283,180 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
 
       <CardContent className="space-y-6">
         {/* Upload Section */}
-        <div>
+        <div className="space-y-4">
           {isLoading ? (
             <div className="flex items-center justify-center p-4">
               <span className="text-sm text-gray-600">Memuat data...</span>
             </div>
-          ) : !uploadedFile ? (
-            <div className="space-y-3">
+          ) : (
+            <>
+              {/* Files List */}
+              {uploadedFiles.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-gray-700">
+                    Files Uploaded ({uploadedFiles.length})
+                  </h4>
+                  {uploadedFiles.map((file) => {
+                    const fileDate = new Date(
+                      file.created_at
+                    ).toLocaleDateString("id-ID", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+
+                    return (
+                      <div
+                        key={file.id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                      >
+                        <div className="flex items-center space-x-2 min-w-0 flex-1">
+                          <FileText className="w-4 h-4 flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              File Template MR - {fileDate}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {file.nama_file}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Desktop: side-by-side buttons, Mobile: 2-column grid */}
+                        <div className="flex items-center gap-2 flex-shrink-0 sm:flex-row">
+                          <div className="hidden sm:flex items-center gap-2">
+                            {/* Desktop Layout */}
+                            <Button
+                              onClick={() => handleDownloadFile(file)}
+                              variant="outline"
+                              size="sm"
+                              className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  disabled={deletingFileId === file.id}
+                                >
+                                  {deletingFileId === file.id ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Konfirmasi Hapus File
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Apakah Anda yakin ingin menghapus file
+                                    &quot;
+                                    {file.nama_file}&quot;? Tindakan ini tidak
+                                    dapat dibatalkan.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleFileDelete(file)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Hapus File
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+
+                          {/* Mobile Layout: 2-column grid */}
+                          <div className="grid grid-cols-2 gap-2 w-full sm:hidden">
+                            <Button
+                              onClick={() => handleDownloadFile(file)}
+                              variant="outline"
+                              size="sm"
+                              className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 flex items-center justify-center"
+                            >
+                              <Download className="w-4 h-4 mr-1" />
+                              <span className="text-xs">Download</span>
+                            </Button>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  disabled={deletingFileId === file.id}
+                                  className="flex items-center justify-center"
+                                >
+                                  {deletingFileId === file.id ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Trash2 className="w-4 h-4 mr-1" />
+                                      <span className="text-xs">Hapus</span>
+                                    </>
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Konfirmasi Hapus File
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Apakah Anda yakin ingin menghapus file
+                                    &quot;
+                                    {file.nama_file}&quot;? Tindakan ini tidak
+                                    dapat dibatalkan.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleFileDelete(file)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Hapus File
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Add New File Button */}
               <Button
                 onClick={triggerFileInput}
                 disabled={isUploading}
-                className="flex items-center justify-center space-x-2 w-full"
+                variant="outline"
+                className="w-full bg-black text-white border-black hover:bg-gray-800"
               >
-                <Upload className="w-4 h-4" />
-                <span>{isUploading ? "Mengupload..." : "Upload File MR"}</span>
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3">
-                <FileText className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  File Template MR berhasil diupload
+                <Upload className="w-4 h-4 mr-2" />
+                <span>
+                  {isUploading ? "Mengupload..." : "Tambah File Template MR"}
                 </span>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Button
-                  onClick={handleDownloadFile}
-                  variant="outline"
-                  className="flex items-center justify-center space-x-2 w-full bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download</span>
-                </Button>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    onClick={triggerFileInput}
-                    disabled={isUploading}
-                    variant="outline"
-                    className="flex items-center justify-center space-x-2 w-full"
-                  >
-                    <Upload className="w-4 h-4" />
-                    <span>{isUploading ? "Mengupload..." : "Reupload"}</span>
-                  </Button>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="destructive"
-                        disabled={isDeleting}
-                        className="flex items-center justify-center space-x-2 w-full"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span>{isDeleting ? "Menghapus..." : "Delete"}</span>
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Konfirmasi Hapus File
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Apakah Anda yakin ingin menghapus file Material
-                          Request yang telah diupload? Tindakan ini tidak dapat
-                          dibatalkan.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleFileDelete}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Hapus File
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </div>
-            </div>
+              </Button>
+            </>
           )}
 
           {/* Hidden file input */}
           <input
             ref={fileInputRef}
             type="file"
-            accept=".xlsx,.xls"
+            accept=".xlsx,.xls,.pdf,.docx,.doc"
             onChange={handleFileInputChange}
             className="hidden"
           />
@@ -380,15 +467,12 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
           <h4 className="font-medium text-gray-900 mb-2">Informasi Penting:</h4>
           <ul className="text-sm text-gray-600 space-y-1">
             <li>
-              • File yang diupload harus berformat Excel (.xlsx atau .xls)
+              • File harus berformat Excel (.xlsx, .xls), PDF (.pdf), atau Word
+              (.docx, .doc)
             </li>
             <li>• Ukuran file maksimal 10MB</li>
             <li>
-              • Pastikan semua kolom telah diisi dengan lengkap sesuai template
-            </li>
-            <li>
-              • File yang diupload akan disimpan secara aman dan dapat diakses
-              oleh tim terkait
+              • File disimpan secara aman dan dapat diakses oleh tim terkait
             </li>
           </ul>
         </div>

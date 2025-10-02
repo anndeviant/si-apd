@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Download, Upload, Trash2, FileText } from "lucide-react";
 
-interface PengajuanKpiProps {
+interface BeritaSerahTerimaProps {
   userId: string;
 }
 
@@ -36,7 +36,7 @@ interface FileRecord {
   storage_path: string;
 }
 
-export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
+export default function BeritaSerahTerima({ userId }: BeritaSerahTerimaProps) {
   const [uploadedFiles, setUploadedFiles] = useState<FileRecord[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [deletingFileId, setDeletingFileId] = useState<number | null>(null);
@@ -47,11 +47,11 @@ export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
   useEffect(() => {
     const loadExistingFiles = async () => {
       try {
-        // Get all records with jenis_file 'pengajuan_apd' for this user
+        // Get all records with jenis_file 'berita_serah_terima' for this user
         const { data, error } = await supabase
           .from("apd_files")
           .select("id, file_url, nama_file, created_at")
-          .eq("jenis_file", "pengajuan_apd")
+          .eq("jenis_file", "berita_serah_terima")
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
 
@@ -136,7 +136,7 @@ export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
 
     setIsUploading(true);
     try {
-      const fileName = `docs/kpi-${userId}-${Date.now()}.${file.name
+      const fileName = `docs/berita-serah-${userId}-${Date.now()}.${file.name
         .split(".")
         .pop()}`;
 
@@ -162,7 +162,7 @@ export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
         .insert({
           file_url: publicUrl,
           nama_file: file.name,
-          jenis_file: "pengajuan_apd",
+          jenis_file: "berita_serah_terima",
           user_id: userId,
         })
         .select("id, created_at")
@@ -273,11 +273,11 @@ export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <FileText className="w-5 h-5" />
-          <span>Pengajuan KPI - APD</span>
+          <span>Berita Serah Terima APD</span>
         </CardTitle>
         <CardDescription>
-          Upload dokumen pengajuan Key Performance Indicator (KPI) untuk
-          manajemen dan evaluasi kinerja distribusi APD.
+          Upload dokumen Berita Serah Terima untuk pencatatan distribusi dan
+          penyerahan APD kepada pekerja atau departemen terkait.
         </CardDescription>
       </CardHeader>
 
@@ -316,7 +316,7 @@ export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
                           <FileText className="w-4 h-4 flex-shrink-0" />
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-gray-900 truncate">
-                              File Pengajuan KPI - {fileDate}
+                              File Berita Serah Terima - {fileDate}
                             </p>
                             <p className="text-xs text-gray-500 truncate">
                               {file.nama_file}
@@ -446,7 +446,9 @@ export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
               >
                 <Upload className="w-4 h-4 mr-2" />
                 <span>
-                  {isUploading ? "Mengupload..." : "Tambah File Pengajuan APD"}
+                  {isUploading
+                    ? "Mengupload..."
+                    : "Tambah File Berita Serah Terima"}
                 </span>
               </Button>
             </>
@@ -471,9 +473,10 @@ export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
               (.docx, .doc)
             </li>
             <li>• Ukuran file maksimal 10MB</li>
+
             <li>
-              • File disimpan secara aman dan dapat diakses oleh tim manajemen
-              untuk evaluasi kinerja
+              • File disimpan secara aman dan dapat diakses oleh tim terkait
+              untuk audit dan verifikasi
             </li>
           </ul>
         </div>

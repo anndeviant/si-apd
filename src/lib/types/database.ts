@@ -100,21 +100,24 @@ export interface BatchRekapData {
 export interface ApdFiles {
     id: number;
     created_at: string;
-    template_mr?: string;
-    berita_serah_terima?: string;
-    pengajuan_apd?: string;
+    file_url: string;
+    nama_file: string;
+    jenis_file: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd';
+    user_id?: string;
 }
 
 export interface CreateApdFilesData {
-    template_mr?: string;
-    berita_serah_terima?: string;
-    pengajuan_apd?: string;
+    file_url: string;
+    nama_file: string;
+    jenis_file: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd';
+    user_id?: string;
 }
 
 export interface UpdateApdFilesData {
-    template_mr?: string;
-    berita_serah_terima?: string;
-    pengajuan_apd?: string;
+    file_url?: string;
+    nama_file?: string;
+    jenis_file?: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd';
+    user_id?: string;
 }
 
 // APD Peminjaman types

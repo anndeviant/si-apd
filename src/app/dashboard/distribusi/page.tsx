@@ -17,6 +17,7 @@ import { ApdProvider } from "@/contexts/apd-context";
 import { BengkelProvider } from "@/contexts/bengkel-context";
 import KonsumableHarianForm from "@/app/_components/konsumable-harian-form";
 import { PeminjamanApd } from "@/app/_components/peminjaman-apd";
+import BeritaSerahTerima from "@/app/_components/berita-serah-terima";
 
 export default function DistribusiPage() {
   const router = useRouter();
@@ -48,16 +49,7 @@ export default function DistribusiPage() {
   const renderContent = () => {
     switch (selectedOption) {
       case "berita-serah":
-        return (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Berita Serah
-            </h3>
-            <p className="text-gray-600">
-              Konten Berita Serah akan ditampilkan di sini...
-            </p>
-          </div>
-        );
+        return <BeritaSerahTerima userId={user.id} />;
       case "peminjaman":
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">

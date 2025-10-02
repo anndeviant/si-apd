@@ -4,18 +4,26 @@
 
 ### 1. Tabel apd_files
 
-Pastikan tabel `apd_files` sudah dibuat dengan struktur berikut:
+Pastikan tabel `apd_files` sudah dibuat d4. **Unique Naming**: Menggunakan userId, timestamp, dan jenis_file untuk menghindari collisionngan struktur yang dioptimalkan berikut:
 
 ```sql
 CREATE TABLE public.apd_files (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
-  template_mr text,
-  berita_serah_terima text,
-  pengajuan_apd text,
+  file_url text NOT NULL,
+  nama_file text NOT NULL,
+  jenis_file text NOT NULL, -- 'template_mr', 'berita_serah_terima', 'pengajuan_apd'
+  user_id text, -- optional: untuk tracking siapa yang upload
   CONSTRAINT apd_files_pkey PRIMARY KEY (id)
 );
 ```
+
+**Keuntungan struktur baru:**
+
+- **Fleksibilitas**: Satu tabel untuk semua jenis file
+- **Skalabilitas**: Mudah menambah jenis file baru tanpa perubahan schema
+- **Konsistensi**: Query yang lebih sederhana dan konsisten
+- **User Tracking**: Bisa melacak siapa yang upload file tertentu
 
 ### 2. Row Level Security (RLS)
 
@@ -25,17 +33,21 @@ Aktifkan RLS dan buat policy sesuai kebutuhan:
 -- Aktifkan RLS
 ALTER TABLE public.apd_files ENABLE ROW LEVEL SECURITY;
 
--- Policy untuk read (sesuaikan dengan kebutuhan authentication)
-CREATE POLICY "Users can read apd_files" ON public.apd_files
-FOR SELECT USING (true);
+-- Policy untuk read (user hanya bisa melihat file mereka sendiri)
+CREATE POLICY "Users can read own files" ON public.apd_files
+FOR SELECT USING (auth.uid()::text = user_id OR user_id IS NULL);
 
 -- Policy untuk insert
 CREATE POLICY "Users can insert apd_files" ON public.apd_files
-FOR INSERT WITH CHECK (true);
+FOR INSERT WITH CHECK (auth.uid()::text = user_id OR user_id IS NULL);
 
--- Policy untuk update
-CREATE POLICY "Users can update apd_files" ON public.apd_files
-FOR UPDATE USING (true);
+-- Policy untuk update (user hanya bisa update file mereka sendiri)
+CREATE POLICY "Users can update own files" ON public.apd_files
+FOR UPDATE USING (auth.uid()::text = user_id OR user_id IS NULL);
+
+-- Policy untuk delete (user hanya bisa delete file mereka sendiri)
+CREATE POLICY "Users can delete own files" ON public.apd_files
+FOR DELETE USING (auth.uid()::text = user_id OR user_id IS NULL);
 ```
 
 ## Storage Setup
@@ -88,21 +100,21 @@ apd-files/
 
 ### 1. Load Existing File
 
-- Saat component mount, akan mengecek database untuk record terbaru
+- Saat component mount, akan mengecek database untuk record berdasarkan `jenis_file` dan `user_id`
 - Verifikasi apakah file masih ada di storage
-- Jika file tidak ada di storage, database record akan dibersihkan
+- Jika file tidak ada di storage, database record akan dihapus completely
 
 ### 2. Upload File
 
 - Upload file ke storage dengan nama unik
 - Jika ada file sebelumnya, hapus dari storage terlebih dahulu
-- Simpan/update public URL ke database
+- Simpan/update record dengan `file_url`, `nama_file`, `jenis_file`, dan `user_id`
 - Sinkronisasi state component
 
 ### 3. Delete File
 
 - Hapus file dari storage
-- Set `template_mr` menjadi `null` di database
+- Delete record dari database completely (tidak lagi set null)
 - Reset state component
 
 ### 4. Download File

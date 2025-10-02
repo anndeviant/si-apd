@@ -23,9 +23,10 @@ CREATE TABLE public.apd_daily (
 CREATE TABLE public.apd_files (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
-  template_mr text,
-  berita_serah_terima text,
-  pengajuan_apd text,
+  file_url text,
+  nama_file text,
+  jenis_file text,
+  user_id text,
   CONSTRAINT apd_files_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.apd_items (

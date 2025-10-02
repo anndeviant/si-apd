@@ -16,6 +16,7 @@ import Header from "@/components/header";
 import { ApdProvider } from "@/contexts/apd-context";
 import { BengkelProvider } from "@/contexts/bengkel-context";
 import KonsumableHarianForm from "@/app/_components/konsumable-harian-form";
+import { PeminjamanApd } from "@/app/_components/peminjaman-apd";
 
 export default function DistribusiPage() {
   const router = useRouter();
@@ -60,12 +61,7 @@ export default function DistribusiPage() {
       case "peminjaman":
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Peminjaman
-            </h3>
-            <p className="text-gray-600">
-              Konten Peminjaman akan ditampilkan di sini...
-            </p>
+            <PeminjamanApd />
           </div>
         );
       case "konsumable-harian":

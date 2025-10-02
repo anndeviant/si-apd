@@ -116,3 +116,33 @@ export interface UpdateApdFilesData {
     berita_serah_terima?: string;
     pengajuan_apd?: string;
 }
+
+// APD Peminjaman types
+export interface ApdPeminjaman {
+    id: number;
+    created_at: string;
+    nama_peminjam: string;
+    divisi: string;
+    nama_apd: string;
+    tanggal_pinjam: string;
+    tanggal_kembali?: string;
+    status: string;
+}
+
+export interface CreateApdPeminjamanData {
+    nama_peminjam: string;
+    divisi: string;
+    nama_apd: string;
+    tanggal_pinjam: string;
+    tanggal_kembali?: string;
+    status: string;
+}
+
+export interface UpdateApdPeminjamanData {
+    nama_peminjam?: string;
+    divisi?: string;
+    nama_apd?: string;
+    tanggal_pinjam?: string;
+    tanggal_kembali?: string;
+    status?: string;
+}

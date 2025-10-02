@@ -10,7 +10,10 @@ import type {
     ApdMonthlyWithRelations,
     CreateApdMonthlyData,
     UpdateApdMonthlyData,
-    BatchRekapData
+    BatchRekapData,
+    ApdPeminjaman,
+    CreateApdPeminjamanData,
+    UpdateApdPeminjamanData
 } from "../types/database";
 
 
@@ -504,6 +507,79 @@ export async function updateApdMonthly(
 
     console.log('Database update successful:', data);
     return data;
+}
+
+// APD Peminjaman functions
+export async function fetchApdPeminjaman(filters?: {
+    status?: string;
+    nama_peminjam?: string;
+    divisi?: string;
+}): Promise<ApdPeminjaman[]> {
+    let query = supabase
+        .from('apd_peminjaman')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (filters?.status) {
+        query = query.eq('status', filters.status);
+    }
+    if (filters?.nama_peminjam) {
+        query = query.ilike('nama_peminjam', `%${filters.nama_peminjam}%`);
+    }
+    if (filters?.divisi) {
+        query = query.ilike('divisi', `%${filters.divisi}%`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        throw new Error(`Failed to fetch APD peminjaman: ${error.message}`);
+    }
+
+    return data || [];
+}
+
+export async function createApdPeminjaman(peminjamanData: CreateApdPeminjamanData): Promise<ApdPeminjaman> {
+    const { data, error } = await supabase
+        .from('apd_peminjaman')
+        .insert(peminjamanData)
+        .select()
+        .single();
+
+    if (error) {
+        throw new Error(`Failed to create APD peminjaman: ${error.message}`);
+    }
+
+    return data;
+}
+
+export async function updateApdPeminjaman(
+    id: number,
+    updateData: UpdateApdPeminjamanData
+): Promise<ApdPeminjaman> {
+    const { data, error } = await supabase
+        .from('apd_peminjaman')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        throw new Error(`Failed to update APD peminjaman: ${error.message}`);
+    }
+
+    return data;
+}
+
+export async function deleteApdPeminjaman(id: number): Promise<void> {
+    const { error } = await supabase
+        .from('apd_peminjaman')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        throw new Error(`Failed to delete APD peminjaman: ${error.message}`);
+    }
 }
 
 // Utility function untuk mendapatkan periode bulan berikutnya

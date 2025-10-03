@@ -15,6 +15,8 @@ import {
 import Header from "@/components/header";
 import { ApdProvider } from "@/contexts/apd-context";
 import { BengkelProvider } from "@/contexts/bengkel-context";
+import { DivisiProvider } from "@/contexts/divisi-context";
+import { PosisiProvider } from "@/contexts/posisi-context";
 import KonsumableHarianForm from "@/app/_components/konsumable-harian-form";
 import { PeminjamanApd } from "@/app/_components/peminjaman-apd";
 import BeritaSerahTerima from "@/app/_components/berita-serah-terima";
@@ -69,7 +71,11 @@ export default function DistribusiPage() {
                 <BeritaSerahTerima userId={user.id} />
               </TabsContent>
               <TabsContent value="mandatory" className="space-y-6">
-                <BeritaSerahMandatory userId={user.id} />
+                <DivisiProvider>
+                  <PosisiProvider>
+                    <BeritaSerahMandatory userId={user.id} />
+                  </PosisiProvider>
+                </DivisiProvider>
               </TabsContent>
             </Tabs>
           </Card>

@@ -149,3 +149,69 @@ export interface UpdateApdPeminjamanData {
     tanggal_kembali?: string;
     status?: string;
 }
+
+// Divisi types
+export interface Divisi {
+    id: number;
+    created_at: string;
+    nama_divisi: string;
+}
+
+export interface CreateDivisiData {
+    nama_divisi: string;
+}
+
+// Posisi types
+export interface Posisi {
+    id: number;
+    created_at: string;
+    nama_posisi: string;
+}
+
+export interface CreatePosisiData {
+    nama_posisi: string;
+}
+
+// Pegawai types
+export interface Pegawai {
+    id: number;
+    created_at: string;
+    nama?: string;
+    nip?: string;
+    divisi_id?: number;
+    posisi_id?: number;
+    size_sepatu?: number;
+    jenis_sepatu?: string;
+    warna_katelpack?: string;
+    size_katelpack?: string;
+    warna_helm?: string;
+}
+
+export interface PegawaiWithRelations extends Pegawai {
+    divisi?: Divisi;
+    posisi?: Posisi;
+}
+
+export interface CreatePegawaiData {
+    nama: string;
+    nip: string;
+    divisi_id: number;
+    posisi_id: number;
+    size_sepatu?: number;
+    jenis_sepatu?: string;
+    warna_katelpack?: string;
+    size_katelpack?: string;
+    warna_helm?: string;
+}
+
+export interface UpdatePegawaiData {
+    nama?: string;
+    nip?: string;
+    divisi_id?: number;
+    posisi_id?: number;
+    size_sepatu?: number;
+    jenis_sepatu?: string;
+    warna_katelpack?: string;
+    size_katelpack?: string;
+    warna_helm?: string;
+}

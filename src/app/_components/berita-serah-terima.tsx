@@ -4,13 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +17,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Download, Upload, Trash2, FileText } from "lucide-react";
+import {
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface BeritaSerahTerimaProps {
   userId: string;
@@ -269,7 +269,7 @@ export default function BeritaSerahTerima({ userId }: BeritaSerahTerimaProps) {
   };
 
   return (
-    <Card className="w-full">
+    <>
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <FileText className="w-5 h-5" />
@@ -481,6 +481,6 @@ export default function BeritaSerahTerima({ userId }: BeritaSerahTerimaProps) {
           </ul>
         </div>
       </CardContent>
-    </Card>
+    </>
   );
 }

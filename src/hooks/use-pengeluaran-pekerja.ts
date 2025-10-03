@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { fetchPengeluaranPekerja, getAvailablePeriods, deleteApdDaily } from '@/lib/database/apd';
 import type { PengeluaranPekerjaData } from '@/lib/types/database';
 
@@ -64,10 +65,13 @@ export function usePengeluaranPekerja(options: UsePengeluaranPekerjaOptions = {}
 
         try {
             await deleteApdDaily(id);
+            toast.success('Data berhasil dihapus!');
             await refetch(); // Refresh data after deletion
             return true;
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to delete data');
+            const errorMessage = err instanceof Error ? err.message : 'Failed to delete data';
+            setError(errorMessage);
+            toast.error(errorMessage);
             return false;
         } finally {
             setLoading(false);

@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Edit, X, Loader2, Download, Save } from "lucide-react";
+import {
+  Calendar,
+  Edit,
+  X,
+  Loader2,
+  Download,
+  Save,
+  AlertTriangle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -50,7 +58,6 @@ export function BatchRekapForm() {
     saveEditWithData,
     startEdit,
     error,
-    successMessage,
     clearMessages,
   } = useBatchRekap();
 
@@ -173,8 +180,11 @@ export function BatchRekapForm() {
                     ?
                   </AlertDialogDescription>
                   {monthlyData.length > 0 && (
-                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
-                      ⚠️ Data untuk periode ini sudah ada dan akan diupdate.
+                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm flex items-center space-x-2">
+                      <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                      <span className="text-yellow-800">
+                        Data untuk periode ini sudah ada dan akan diupdate.
+                      </span>
                     </div>
                   )}
                 </AlertDialogHeader>
@@ -205,22 +215,6 @@ export function BatchRekapForm() {
                 size="sm"
                 onClick={clearMessages}
                 className="h-6 w-6 p-0 text-red-600 hover:text-red-700 shrink-0"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded text-sm">
-            <div className="flex items-start justify-between">
-              <p className="text-green-600 flex-1">{successMessage}</p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearMessages}
-                className="h-6 w-6 p-0 text-green-600 hover:text-green-700 shrink-0"
               >
                 <X className="h-3 w-3" />
               </Button>

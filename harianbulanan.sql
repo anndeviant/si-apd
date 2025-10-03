@@ -61,3 +61,31 @@ CREATE TABLE public.apd_peminjaman (
   status text DEFAULT 'Dipinjam'::text,
   CONSTRAINT apd_peminjaman_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.divisi (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  nama_divisi text NOT NULL UNIQUE,
+  CONSTRAINT divisi_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.pegawai (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  nama text,
+  nip character varying DEFAULT '20'::character varying,
+  divisi_id bigint,
+  posisi_id bigint,
+  size_sepatu real,
+  jenis_sepatu character varying DEFAULT '10'::character varying,
+  warna_katelpack character varying DEFAULT '20'::character varying,
+  size_katelpack character varying DEFAULT '10'::character varying,
+  warna_helm character varying DEFAULT '20'::character varying,
+  CONSTRAINT pegawai_pkey PRIMARY KEY (id),
+  CONSTRAINT pegawai_divisi_id_fkey FOREIGN KEY (divisi_id) REFERENCES public.divisi(id),
+  CONSTRAINT pegawai_posisi_id_fkey FOREIGN KEY (posisi_id) REFERENCES public.posisi(id)
+);
+CREATE TABLE public.posisi (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  nama_posisi text NOT NULL UNIQUE,
+  CONSTRAINT posisi_pkey PRIMARY KEY (id)
+);

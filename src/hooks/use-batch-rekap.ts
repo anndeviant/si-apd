@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import {
     generateBatchRekap,
     fetchApdMonthly,
@@ -33,7 +34,6 @@ export function useBatchRekap() {
     const [isLoading, setIsLoading] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [editingRow, setEditingRow] = useState<number | null>(null);
     const [editFormData, setEditFormData] = useState<EditableMonthlyData | null>(null);
 
@@ -77,19 +77,17 @@ export function useBatchRekap() {
     const updatePeriode = (periode: Date) => {
         setFormData({ periode });
         setError(null);
-        setSuccessMessage(null);
     };
 
     const generateRekap = async (): Promise<boolean> => {
         try {
             setIsGenerating(true);
             setError(null);
-            setSuccessMessage(null);
 
             const periodeString = calculatePeriode(formData.periode.toISOString().split('T')[0]);
             await generateBatchRekap(periodeString);
 
-            setSuccessMessage('Batch rekap berhasil!');
+            toast.success('Batch rekap berhasil!');
 
             // Reload data after successful generation (akan otomatis sinkron dengan apd_items.jumlah)
             await loadMonthlyData();
@@ -165,7 +163,7 @@ export function useBatchRekap() {
                 )
             );
 
-            setSuccessMessage('Data berhasil diupdate!');
+            toast.success('Data berhasil diupdate!');
             cancelEdit();
             return true;
         } catch (err) {
@@ -189,7 +187,7 @@ export function useBatchRekap() {
             // Refresh data dari database untuk mendapatkan nilai terbaru (termasuk sinkronisasi stock_awal)
             await loadMonthlyData();
 
-            setSuccessMessage('Data berhasil diupdate!');
+            toast.success('Data berhasil diupdate!');
             return true;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to update data';
@@ -203,7 +201,6 @@ export function useBatchRekap() {
 
     const clearMessages = () => {
         setError(null);
-        setSuccessMessage(null);
     };
 
     const formatPeriodeName = (periode: string): string => {
@@ -249,9 +246,7 @@ export function useBatchRekap() {
 
         // Messages
         error,
-        successMessage,
         clearMessages,
         setError,
-        setSuccessMessage,
     };
 }

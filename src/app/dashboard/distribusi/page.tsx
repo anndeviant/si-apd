@@ -18,6 +18,9 @@ import { BengkelProvider } from "@/contexts/bengkel-context";
 import KonsumableHarianForm from "@/app/_components/konsumable-harian-form";
 import { PeminjamanApd } from "@/app/_components/peminjaman-apd";
 import BeritaSerahTerima from "@/app/_components/berita-serah-terima";
+import BeritaSerahMandatory from "@/app/_components/berita-serah-mandatory";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
 
 export default function DistribusiPage() {
   const router = useRouter();
@@ -49,7 +52,28 @@ export default function DistribusiPage() {
   const renderContent = () => {
     switch (selectedOption) {
       case "berita-serah":
-        return <BeritaSerahTerima userId={user.id} />;
+        return (
+          <Card className="w-full">
+            <Tabs defaultValue="serah-terima" className="w-full">
+              <div className="pr-6 pl-6 pb-0">
+                <TabsList className="w-full grid grid-cols-2 mb-6">
+                  <TabsTrigger value="serah-terima" className="w-full">
+                    Serah Terima
+                  </TabsTrigger>
+                  <TabsTrigger value="mandatory" className="w-full">
+                    Mandatory
+                  </TabsTrigger>
+                </TabsList>
+              </div>{" "}
+              <TabsContent value="serah-terima" className="space-y-6">
+                <BeritaSerahTerima userId={user.id} />
+              </TabsContent>
+              <TabsContent value="mandatory" className="space-y-6">
+                <BeritaSerahMandatory userId={user.id} />
+              </TabsContent>
+            </Tabs>
+          </Card>
+        );
       case "peminjaman":
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">

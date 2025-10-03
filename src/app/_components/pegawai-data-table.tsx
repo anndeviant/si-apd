@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Trash2, Loader2, X } from "lucide-react";
+import { Search, Trash2, Loader2, X, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { usePegawaiData } from "@/hooks/use-pegawai-data";
+import { exportPegawaiToExcel } from "@/lib/excel-export";
 
 export default function PegawaiDataTable() {
   const {
@@ -79,6 +80,20 @@ export default function PegawaiDataTable() {
     setError(null);
   };
 
+  // Handle export to Excel
+  const handleExportExcel = () => {
+    try {
+      const filename = exportPegawaiToExcel(groupedPegawai, {
+        filename: "Data_Pegawai_Mandatory_APD",
+        sheetName: "Data Pegawai",
+      });
+      toast.success(`Data berhasil diexport ke file: ${filename}`);
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Gagal export data ke Excel");
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header dengan Search */}
@@ -97,7 +112,7 @@ export default function PegawaiDataTable() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
-            placeholder="Cari berdasarkan nama, NIP, divisi, atau posisi..."
+            placeholder="Cari Pegawai..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 pr-10"
@@ -115,13 +130,18 @@ export default function PegawaiDataTable() {
         </div>
       </div>
 
-      {/* Search Results Info */}
-      {searchTerm && !isLoading && (
-        <div className="text-sm text-gray-600">
-          Menampilkan {pegawaiList.length} hasil pencarian untuk &quot;
-          {searchTerm}&quot;
-        </div>
-      )}
+      {/* Export Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleExportExcel}
+          disabled={isLoading || pegawaiList.length === 0}
+          className="w-full sm:w-auto flex items-center space-x-2"
+          variant="outline"
+        >
+          <Download className="h-4 w-4" />
+          <span>Export Excel</span>
+        </Button>
+      </div>
 
       {/* Error Message */}
       {error && (
@@ -217,7 +237,7 @@ export default function PegawaiDataTable() {
                     >
                       {group.divisi}
                     </TableCell>
-                  </TableRow>{" "}
+                  </TableRow>
                   {/* Data Pegawai dalam Divisi */}
                   {group.pegawai.map((pegawai, index) => (
                     <TableRow key={pegawai.id}>

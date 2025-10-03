@@ -9,6 +9,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, UserPlus, Users } from "lucide-react";
 import MandatoryApdForm from "./mandatory-apd-form";
+import PegawaiDataTable from "./pegawai-data-table";
 
 interface BeritaSerahMandatoryProps {
   userId: string;
@@ -52,20 +53,7 @@ export default function BeritaSerahMandatory({}: BeritaSerahMandatoryProps) {
 
           <TabsContent value="data" className="space-y-4">
             <div className="border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">
-                Data Pegawai Mandatory APD
-              </h3>
-              {/* Placeholder untuk tab Lihat Data */}
-              <div className="text-center p-8 bg-gray-50 border border-gray-200 rounded-lg">
-                <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <h4 className="text-lg font-medium text-gray-900 mb-2">
-                  Lihat Data Pegawai
-                </h4>
-                <p className="text-gray-600">
-                  Fitur ini akan segera tersedia untuk melihat dan mengelola
-                  data pegawai.
-                </p>
-              </div>
+              <PegawaiDataTable />
             </div>
           </TabsContent>
         </Tabs>

@@ -45,7 +45,7 @@ export default function MandatoryApdForm() {
             <Label htmlFor="nama">Nama Pegawai *</Label>
             <Input
               id="nama"
-              placeholder="Masukkan nama lengkap pegawai"
+              placeholder="Nama Pegawai"
               value={formData.nama}
               onChange={(e) => updateField("nama", e.target.value)}
               disabled={isSubmitting}
@@ -97,8 +97,8 @@ export default function MandatoryApdForm() {
               id="size_sepatu"
               type="number"
               step="0.5"
-              min="35"
-              max="50"
+              min="1"
+              max="100"
               placeholder="Contoh: 42"
               value={formData.size_sepatu || ""}
               onChange={(e) =>

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { ArrowLeft, Mail } from "lucide-react";
@@ -16,24 +17,12 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 export default function PengaturanPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const getUser = async () => {
@@ -59,16 +48,14 @@ export default function PengaturanPage() {
     e.preventDefault();
 
     if (!email) {
-      setErrorMessage("Email harus diisi");
-      setShowErrorDialog(true);
+      toast.error("Email harus diisi");
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setErrorMessage("Format email tidak valid");
-      setShowErrorDialog(true);
+      toast.error("Format email tidak valid");
       return;
     }
 
@@ -80,14 +67,12 @@ export default function PengaturanPage() {
       });
 
       if (error) {
-        setErrorMessage(error.message);
-        setShowErrorDialog(true);
+        toast.error(error.message);
       } else {
-        setShowSuccessDialog(true);
+        toast.success(`Link reset password telah dikirim ke email ${email}.`);
       }
     } catch {
-      setErrorMessage("Terjadi kesalahan saat mengirim email reset password");
-      setShowErrorDialog(true);
+      toast.error("Terjadi kesalahan saat mengirim email reset password");
     } finally {
       setIsLoading(false);
     }
@@ -202,43 +187,6 @@ export default function PengaturanPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Success Dialog */}
-        <AlertDialog
-          open={showSuccessDialog}
-          onOpenChange={setShowSuccessDialog}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Email Berhasil Dikirim!</AlertDialogTitle>
-              <AlertDialogDescription>
-                Link reset password telah dikirim ke email{" "}
-                <strong>{email}</strong>. Silakan cek inbox atau folder spam
-                email Anda.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setShowSuccessDialog(false)}>
-                Tutup
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Error Dialog */}
-        <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Terjadi Kesalahan</AlertDialogTitle>
-              <AlertDialogDescription>{errorMessage}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setShowErrorDialog(false)}>
-                Tutup
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );

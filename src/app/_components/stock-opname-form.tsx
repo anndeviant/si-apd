@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Edit, Loader2, Save, X } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -46,7 +47,6 @@ export function StockOpnameForm() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState<EditModalData | null>(null);
   const [error, setError] = useState<string>("");
-  const [successMessage, setSuccessMessage] = useState<string>("");
 
   // Load APD items
   const loadApdItems = async () => {
@@ -99,7 +99,7 @@ export function StockOpnameForm() {
 
       if (error) throw error;
 
-      setSuccessMessage("Data APD berhasil diperbarui");
+      toast.success("Data APD berhasil diperbarui");
       setShowEditModal(false);
       setEditData(null);
       await loadApdItems(); // Reload data
@@ -113,7 +113,6 @@ export function StockOpnameForm() {
 
   const clearMessages = () => {
     setError("");
-    setSuccessMessage("");
   };
 
   const formatNumber = (num: number | undefined | null): string => {
@@ -143,22 +142,6 @@ export function StockOpnameForm() {
               size="sm"
               onClick={clearMessages}
               className="h-6 w-6 p-0 text-red-600 hover:text-red-700 shrink-0"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded text-sm">
-          <div className="flex items-start justify-between">
-            <p className="text-green-600 flex-1">{successMessage}</p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearMessages}
-              className="h-6 w-6 p-0 text-green-600 hover:text-green-700 shrink-0"
             >
               <X className="h-3 w-3" />
             </Button>

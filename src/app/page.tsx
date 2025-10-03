@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ScaleLoader } from "react-spinners";
 import { supabase } from "@/lib/supabase/client";
 
 export default function Home() {
@@ -28,8 +29,15 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <h1 className="text-xl font-semibold mb-2">SI-APD</h1>
-        <p className="text-muted-foreground">Loading...</p>
+        {/* <h1 className="text-xl font-semibold mb-4">SI-APD</h1> */}
+        <ScaleLoader
+          color="#22c55e"
+          height={35}
+          width={4}
+          radius={2}
+          margin={2}
+          loading={true}
+        />
       </div>
     </div>
   );

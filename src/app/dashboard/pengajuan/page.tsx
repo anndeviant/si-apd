@@ -15,6 +15,19 @@ import {
 import Header from "@/components/header";
 import PengajuanProject from "@/app/_components/pengajuan-project";
 import PengajuanKpi from "@/app/_components/pengajuan-kpi";
+import { DivisiProvider } from "@/contexts/divisi-context";
+import { PosisiProvider } from "@/contexts/posisi-context";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FileText, UserPlus, Users } from "lucide-react";
+import MandatoryApdForm from "@/app/_components/mandatory-apd-form";
+import PegawaiDataTable from "@/app/_components/pegawai-data-table";
 
 export default function PengajuanPage() {
   const router = useRouter();
@@ -49,6 +62,61 @@ export default function PengajuanPage() {
         return <PengajuanProject userId={user.id} />;
       case "kpi":
         return <PengajuanKpi userId={user.id} />;
+      case "mandatory":
+        return (
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="w-5 h-5" />
+                <span>Mandatory APD</span>
+              </CardTitle>
+              <CardDescription>
+                Kelola data pegawai dan APD wajib yang harus digunakan sesuai
+                dengan standar keselamatan kerja.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              <Tabs defaultValue="form" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger
+                    value="form"
+                    className="flex items-center space-x-2"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>Form</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="data"
+                    className="flex items-center space-x-2"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>Lihat Data Mandatory</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="form" className="space-y-4">
+                  <div className="border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4">
+                      Tambah Data Pegawai Mandatory APD
+                    </h3>
+                    <DivisiProvider>
+                      <PosisiProvider>
+                        <MandatoryApdForm />
+                      </PosisiProvider>
+                    </DivisiProvider>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="data" className="space-y-4">
+                  <div className="border rounded-lg p-6">
+                    <PegawaiDataTable />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        );
       default:
         return null;
     }
@@ -84,8 +152,9 @@ export default function PengajuanPage() {
               <SelectValue placeholder="Pilih jenis pengajuan" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="project">Project</SelectItem>
-              <SelectItem value="kpi">Pengajuan KPI - APD</SelectItem>
+              <SelectItem value="project">Pengajuan Project</SelectItem>
+              <SelectItem value="kpi">KPI</SelectItem>
+              <SelectItem value="mandatory">Mandatory APD</SelectItem>
             </SelectContent>
           </Select>
         </div>

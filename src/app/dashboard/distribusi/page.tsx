@@ -63,7 +63,7 @@ export default function DistribusiPage() {
                     Serah Terima
                   </TabsTrigger>
                   <TabsTrigger value="mandatory" className="w-full">
-                    Mandatory
+                    Form Serah Terima
                   </TabsTrigger>
                 </TabsList>
               </div>{" "}
@@ -134,8 +134,10 @@ export default function DistribusiPage() {
               <SelectValue placeholder="Pilih jenis distribusi" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="berita-serah">Berita Serah</SelectItem>
-              <SelectItem value="peminjaman">Peminjaman</SelectItem>
+              <SelectItem value="berita-serah">
+                Berita Acara Serah Terima APD
+              </SelectItem>
+              <SelectItem value="peminjaman">Peminjaman APD</SelectItem>
               <SelectItem value="konsumable-harian">
                 Konsumable (Harian)
               </SelectItem>

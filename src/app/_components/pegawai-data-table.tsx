@@ -306,10 +306,6 @@ export default function PegawaiDataTable() {
             <AlertDialogDescription>
               Apakah Anda yakin ingin menghapus data pegawai &quot;
               {selectedPegawaiName}&quot;?
-              <br />
-              <span className="text-red-600 font-medium">
-                Tindakan ini tidak dapat dibatalkan.
-              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

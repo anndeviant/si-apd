@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { ArrowLeft } from "lucide-react";
 import Header from "@/components/header";
-import Image from "next/image";
 
 export default function TentangPage() {
   const router = useRouter();
@@ -62,134 +61,45 @@ export default function TentangPage() {
             </h3>
             <div className="space-y-4 text-gray-600">
               <p className="text-justify">
-                <strong className="text-gray-900">
-                  SI-APD (Sistem Informasi Alat Pelindung Diri)
-                </strong>{" "}
-                adalah aplikasi web yang dikembangkan khusus untuk mendukung
-                manajemen APD di lingkungan Poltekkes Kemenkes Yogyakarta.
-                Aplikasi ini dirancang untuk memberikan solusi terintegrasi
-                dalam pengelolaan keselamatan dan kesehatan kerja.
-              </p>
-              <p className="text-justify">
-                Sistem ini menerapkan prinsip{" "}
-                <em>&ldquo;Keselamatan Anda Prioritas Kami&rdquo;</em> dengan
-                menyediakan platform digital yang memudahkan proses pengajuan,
-                distribusi, dan monitoring penggunaan APD secara real-time dan
-                akurat.
+                Aplikasi{" "}
+                <strong className="text-gray-900">Sistem Informasi APD</strong>{" "}
+                merupakan inovasi digital yang dikembangkan oleh mahasiswa
+                magang Poltekkes Kemenkes Yogyakarta di Biro K3LH Divisi
+                Rekayasa Umum PT PAL Indonesia. Aplikasi ini hadir untuk
+                mendukung proses digitalisasi sistem K3LH Divisi Rekayasa Umum,
+                khususnya dalam pendataan dan pengelolaan Alat Pelindung Diri
+                (APD) agar lebih efisien, akurat, dan mudah diakses.
               </p>
             </div>
           </div>
 
-          {/* Tentang Instansi */}
+          {/* Tentang Kreator */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-center mb-6">
-              <Image
-                src="/rekum.png"
-                alt="Logo Rekum"
-                width={120}
-                height={120}
-                className="object-contain"
-              />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-              Tentang Poltekkes Kemenkes Yogyakarta
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Tentang Kreator
             </h3>
             <div className="space-y-4 text-gray-600">
               <p className="text-justify">
-                <strong className="text-gray-900">
-                  Politeknik Kesehatan Kementerian Kesehatan Yogyakarta
-                </strong>{" "}
-                adalah institusi pendidikan tinggi di bidang kesehatan yang
-                berkomitmen menghasilkan tenaga kesehatan profesional dan
-                berkualitas. Sebagai bagian dari Kementerian Kesehatan RI,
-                Poltekkes Yogyakarta menerapkan standar keselamatan kerja yang
-                ketat di seluruh aktivitas pendidikan dan operasionalnya.
+                Sistem ini dirancang oleh mahasiswa magang Poltekkes Kemenkes
+                Yogyakarta periode 2025 sebagai bagian dari proyek inovasi
+                digital di Biro K3LH Divisi Rekayasa Umum PT PAL Indonesia.
               </p>
               <p className="text-justify">
-                Unit HSE (Health, Safety, and Environment) Rekum bertanggung
-                jawab memastikan lingkungan kerja yang aman dan sehat bagi
-                seluruh civitas akademika melalui pengelolaan APD yang
-                sistematis dan terstandarisasi.
+                <strong className="text-gray-900">
+                  Adapun tim kreator aplikasi ini terdiri dari:
+                </strong>
               </p>
-            </div>
-          </div>
-
-          {/* Fitur Utama */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Fitur Utama Aplikasi
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">Pengajuan APD</h4>
-                    <p className="text-sm text-gray-600 text-justify">
-                      Sistem pengajuan digital untuk permintaan APD dengan
-                      tracking status dan approval workflow
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">
-                      Distribusi APD
-                    </h4>
-                    <p className="text-sm text-gray-600 text-justify">
-                      Pengelolaan distribusi APD dengan monitoring real-time dan
-                      dokumentasi penyerahan
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">
-                      Rekapitulasi & Laporan
-                    </h4>
-                    <p className="text-sm text-gray-600 text-justify">
-                      Generate laporan bulanan, batch rekap, dan export data
-                      dalam format Excel/PDF
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-orange-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">Stock Opname</h4>
-                    <p className="text-sm text-gray-600 text-justify">
-                      Manajemen inventori APD dengan sistem stock awal dan
-                      monitoring ketersediaan
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-indigo-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">
-                      Manajemen Data
-                    </h4>
-                    <p className="text-sm text-gray-600 text-justify">
-                      Pengelolaan data pegawai, divisi, bengkel, dan posisi
-                      kerja terintegrasi
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">Keamanan Data</h4>
-                    <p className="text-sm text-gray-600 text-justify">
-                      Autentikasi user dan role-based access control dengan
-                      database terenkripsi
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <ul className="list-decimal list-inside space-y-1 ml-4">
+                <li>Annisa Salsabila</li>
+                <li>Jasmine Nabilla Hamida</li>
+                <li>Alifia Ananda Putri</li>
+                <li>Merita Rizki Pradani</li>
+              </ul>
+              <p className="text-justify">
+                Sistem ini dirancang sebagai bagian dari kegiatan magang kami.
+                Diharapkan dapat memberikan manfaat dan mendorong terciptanya
+                sistem kerja yang lebih efektif dan terintegrasi.
+              </p>
             </div>
           </div>
         </div>
@@ -197,7 +107,7 @@ export default function TentangPage() {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-xs text-gray-500">
-            Created by © 2025 Poltekkes Kemenkes Yogyakarta
+            Created by 2025 Poltekkes Kemenkes Yogyakarta
           </p>
         </div>
       </div>

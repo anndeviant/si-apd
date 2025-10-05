@@ -2,14 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Header from "@/components/header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -21,8 +17,6 @@ import {
 export default function PengaturanPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -34,7 +28,6 @@ export default function PengaturanPage() {
         return;
       }
       setUser(user);
-      setEmail(user.email || "");
     };
 
     getUser();
@@ -42,40 +35,6 @@ export default function PengaturanPage() {
 
   const handleBack = () => {
     router.push("/dashboard");
-  };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!email) {
-      toast.error("Email harus diisi");
-      return;
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error("Format email tidak valid");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/dashboard/pengaturan`,
-      });
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success(`Link reset password telah dikirim ke email ${email}.`);
-      }
-    } catch {
-      toast.error("Terjadi kesalahan saat mengirim email reset password");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   if (!user) return null;
@@ -102,46 +61,6 @@ export default function PengaturanPage() {
 
         {/* Content Area */}
         <div className="space-y-6">
-          {/* Reset Password Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <span>Reset Password</span>
-              </CardTitle>
-              <CardDescription>
-                Ubah password akun Anda dengan mengirim link reset ke email yang
-                terdaftar
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="masukkan email Anda"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
-                      disabled={isLoading}
-                      required
-                    />
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    Link reset password akan dikirim ke email ini
-                  </p>
-                </div>
-
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Mengirim..." : "Kirim Link Reset Password"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
           {/* User Info Section */}
           <Card>
             <CardHeader>

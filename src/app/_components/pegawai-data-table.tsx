@@ -130,8 +130,8 @@ export default function PegawaiDataTable() {
         </div>
       </div>
 
-      {/* Export Button */}
-      <div className="flex justify-end">
+      {/* Export Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
         <Button
           onClick={handleExportExcel}
           disabled={isLoading || pegawaiList.length === 0}

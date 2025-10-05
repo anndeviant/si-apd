@@ -83,20 +83,28 @@ export function exportPegawaiToExcel(
     // Get worksheet range
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
 
-    // Style all cells with borders first
+    // Define consistent border style for all data cells
+    const borderStyle = {
+        top: { style: 'thin', color: { rgb: '000000' } },
+        bottom: { style: 'thin', color: { rgb: '000000' } },
+        left: { style: 'thin', color: { rgb: '000000' } },
+        right: { style: 'thin', color: { rgb: '000000' } }
+    };
+
+    // Apply borders to ALL cells that contain data (no empty cells)
     for (let row = range.s.r; row <= range.e.r; row++) {
         for (let col = range.s.c; col <= range.e.c; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-            if (!ws[cellAddress]) ws[cellAddress] = { v: '', t: 's' };
 
-            // Default border for all cells
+            // Initialize cell if it doesn't exist
+            if (!ws[cellAddress]) {
+                ws[cellAddress] = { v: '', t: 's' };
+            }
+
+            // Apply consistent border to all data cells
             ws[cellAddress].s = {
-                border: {
-                    top: { style: 'thin', color: { rgb: '000000' } },
-                    bottom: { style: 'thin', color: { rgb: '000000' } },
-                    left: { style: 'thin', color: { rgb: '000000' } },
-                    right: { style: 'thin', color: { rgb: '000000' } }
-                }
+                border: borderStyle,
+                alignment: { vertical: 'center' }
             };
         }
     }
@@ -105,15 +113,11 @@ export function exportPegawaiToExcel(
     for (let col = range.s.c; col <= range.e.c; col++) {
         const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
         ws[cellAddress].s = {
+            ...ws[cellAddress].s, // Preserve existing styling
             fill: { fgColor: { rgb: 'FEE2E2' } }, // red-100
             font: { bold: true },
             alignment: { horizontal: 'center', vertical: 'center' },
-            border: {
-                top: { style: 'thin', color: { rgb: '000000' } },
-                bottom: { style: 'thin', color: { rgb: '000000' } },
-                left: { style: 'thin', color: { rgb: '000000' } },
-                right: { style: 'thin', color: { rgb: '000000' } }
-            }
+            border: borderStyle // Use consistent border
         };
     }
 
@@ -122,15 +126,11 @@ export function exportPegawaiToExcel(
         for (let col = range.s.c; col <= range.e.c; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: rowNum, c: col });
             ws[cellAddress].s = {
+                ...ws[cellAddress].s, // Preserve existing styling
                 fill: { fgColor: { rgb: 'DBEAFE' } }, // blue-100
                 font: { bold: true },
                 alignment: { horizontal: 'left', vertical: 'center' }, // Left aligned like web
-                border: {
-                    top: { style: 'thin', color: { rgb: '000000' } },
-                    bottom: { style: 'thin', color: { rgb: '000000' } },
-                    left: { style: 'thin', color: { rgb: '000000' } },
-                    right: { style: 'thin', color: { rgb: '000000' } }
-                }
+                border: borderStyle // Use consistent border
             };
         }
 
@@ -150,16 +150,13 @@ export function exportPegawaiToExcel(
         for (let col = range.s.c; col <= range.e.c; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
             ws[cellAddress].s = {
+                ...ws[cellAddress].s, // Preserve existing styling including borders
                 alignment: {
                     horizontal: col === 1 ? 'left' : 'center', // NAMA left, others center like web
                     vertical: 'center'
                 },
-                border: {
-                    top: { style: 'thin', color: { rgb: '000000' } },
-                    bottom: { style: 'thin', color: { rgb: '000000' } },
-                    left: { style: 'thin', color: { rgb: '000000' } },
-                    right: { style: 'thin', color: { rgb: '000000' } }
-                }
+                border: borderStyle, // Ensure consistent border
+                fill: { fgColor: { rgb: 'FFFFFF' } } // Explicit white background for data rows
             };
         }
     }

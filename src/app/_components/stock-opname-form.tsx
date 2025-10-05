@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Edit, Loader2, Save, X } from "lucide-react";
+import { Edit, Loader2, Save, X, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/lib/supabase/client";
+import { exportStockOpnameToExcel } from "@/lib/exports";
 
 interface ApdItem {
   id: number;
@@ -44,6 +45,7 @@ export function StockOpnameForm() {
   const [apdItems, setApdItems] = useState<ApdItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState<EditModalData | null>(null);
   const [error, setError] = useState<string>("");
@@ -111,6 +113,35 @@ export function StockOpnameForm() {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+      setError("");
+
+      if (apdItems.length === 0) {
+        toast.error("Tidak ada data untuk diexport");
+        return;
+      }
+
+      // Transform data sesuai interface yang dibutuhkan
+      const exportData = apdItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        jumlah: item.jumlah,
+        satuan: item.satuan,
+      }));
+
+      exportStockOpnameToExcel(exportData);
+      toast.success("Data berhasil diexport ke Excel");
+    } catch (err) {
+      setError("Gagal export data ke Excel");
+      toast.error("Gagal export data ke Excel");
+      console.error(err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const clearMessages = () => {
     setError("");
   };
@@ -122,14 +153,33 @@ export function StockOpnameForm() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Stock Opname APD
-        </h3>
-        <p className="text-sm text-gray-600">
-          Kelola stock awal APD yang akan digunakan sebagai dasar generate rekap
-          bulanan
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Stock Opname APD
+          </h3>
+          <p className="text-sm text-gray-600">
+            Kelola stock awal APD yang akan digunakan sebagai dasar generate
+            rekap bulanan
+          </p>
+        </div>
+        <Button
+          onClick={handleExportExcel}
+          disabled={isLoading || isExporting || apdItems.length === 0}
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            <>
+              <FileDown className="mr-2 h-4 w-4" />
+              Export Excel
+            </>
+          )}
+        </Button>
       </div>
 
       {/* Messages */}

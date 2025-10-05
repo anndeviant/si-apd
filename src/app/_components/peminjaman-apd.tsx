@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Edit, Loader2, Save } from "lucide-react";
+import { Plus, Edit, Loader2, Save, FileDown } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -37,11 +38,13 @@ import {
   usePeminjamanForm,
 } from "@/hooks/use-apd-peminjaman";
 import type { ApdPeminjaman } from "@/lib/types/database";
+import { exportPeminjamanApdToExcel } from "@/lib/exports";
 
 export function PeminjamanApd() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Use custom hooks
   const {
@@ -112,6 +115,36 @@ export function PeminjamanApd() {
     return <Badge variant={variant}>{status}</Badge>;
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+
+      if (peminjamanItems.length === 0) {
+        toast.error("Tidak ada data untuk diexport");
+        return;
+      }
+
+      // Transform data sesuai interface yang dibutuhkan
+      const exportData = peminjamanItems.map((item) => ({
+        id: item.id,
+        nama_peminjam: item.nama_peminjam,
+        divisi: item.divisi,
+        nama_apd: item.nama_apd,
+        tanggal_pinjam: item.tanggal_pinjam,
+        tanggal_kembali: item.tanggal_kembali,
+        status: item.status,
+      }));
+
+      exportPeminjamanApdToExcel(exportData);
+      toast.success("Data berhasil diexport ke Excel");
+    } catch (err) {
+      toast.error("Gagal export data ke Excel");
+      console.error(err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header with Add Button */}
@@ -124,13 +157,32 @@ export function PeminjamanApd() {
             Kelola data peminjaman APD oleh pekerja
           </p>
         </div>
-        <Button
-          onClick={handleAddClick}
-          className="flex items-center gap-2 w-full sm:w-fit"
-        >
-          <Plus className="h-4 w-4" />
-          Tambah Peminjaman
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+          <Button
+            onClick={handleExportExcel}
+            disabled={isLoading || isExporting || peminjamanItems.length === 0}
+            className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 w-full sm:w-fit"
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <FileDown className="h-4 w-4" />
+                Export Excel
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={handleAddClick}
+            className="flex items-center gap-2 w-full sm:w-fit"
+          >
+            <Plus className="h-4 w-4" />
+            Tambah Peminjaman
+          </Button>
+        </div>
       </div>
 
       {/* Data Table */}

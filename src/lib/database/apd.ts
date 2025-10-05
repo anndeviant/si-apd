@@ -283,19 +283,22 @@ export async function generateBatchRekap(periode: string): Promise<BatchRekapDat
     const nextMonth = month === 12 ? 1 : month + 1;
     const nextYear = month === 12 ? year + 1 : year;
 
-    // Validasi: Cek apakah ada data harian untuk periode yang dipilih (match by year and month)
+    // Cek apakah ada data harian untuk periode yang dipilih (opsional - untuk informasi saja)
     const { data: dailyCheck, error: dailyCheckError } = await supabase
         .from('apd_daily')
         .select('id, periode')
         .gte('periode', `${year}-${String(month).padStart(2, '0')}-01`)
         .lt('periode', `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`)
-        .limit(5); if (dailyCheckError) {
-            throw new Error(`Failed to check daily data: ${dailyCheckError.message}`);
-        }
+        .limit(5);
 
-    if (!dailyCheck || dailyCheck.length === 0) {
-        throw new Error(`Tidak ada data harian untuk periode yang dipilih. Harap pastikan sudah ada data distribusi APD untuk bulan tersebut.`);
+    if (dailyCheckError) {
+        throw new Error(`Failed to check daily data: ${dailyCheckError.message}`);
     }
+
+    // TIDAK lagi throw error jika tidak ada data harian
+    // APD yang belum ada distribusi tetap bisa dimasukkan ke rekap dengan distribusi = 0
+    console.log(`Found ${dailyCheck?.length || 0} daily records for period ${periode}`);
+
 
     // Hitung tanggal bulan sebelumnya untuk stock_awal
     const currentDate = new Date(periode);
@@ -328,43 +331,27 @@ async function generateBatchRekapFallback(periode: string): Promise<BatchRekapDa
         const nextMonth = month === 12 ? 1 : month + 1;
         const nextYear = month === 12 ? year + 1 : year;
 
-        // Validasi: Cek apakah ada data harian untuk periode yang dipilih
+        // Cek data harian untuk informasi (tidak wajib ada)
         const { data: dailyCheck, error: dailyError } = await supabase
             .from('apd_daily')
             .select('id')
             .gte('periode', `${year}-${String(month).padStart(2, '0')}-01`)
             .lt('periode', `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`)
-            .limit(1); if (dailyError) {
-                throw new Error(`Failed to check daily data: ${dailyError.message}`);
-            }
+            .limit(1);
 
-        if (!dailyCheck || dailyCheck.length === 0) {
-            throw new Error(`Tidak ada data harian untuk periode yang dipilih. Harap pastikan sudah ada data distribusi APD untuk bulan tersebut.`);
+        if (dailyError) {
+            throw new Error(`Failed to check daily data: ${dailyError.message}`);
         }
 
-        // Ambil APD items yang ada di apd_daily untuk periode ini
-        const { data: dailyApdIds, error: dailyApdError } = await supabase
-            .from('apd_daily')
-            .select('apd_id')
-            .gte('periode', `${year}-${String(month).padStart(2, '0')}-01`)
-            .lt('periode', `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`);
+        // TIDAK lagi throw error jika tidak ada data harian
+        // APD yang belum ada distribusi tetap bisa dimasukkan ke rekap dengan distribusi = 0
+        console.log(`Fallback: Found ${dailyCheck?.length || 0} daily records for period ${periode}`);
 
-        if (dailyApdError) {
-            throw new Error(`Failed to fetch daily APD IDs: ${dailyApdError.message}`);
-        }
-
-        // Ambil unique APD IDs yang ada di daily
-        const uniqueApdIds = [...new Set(dailyApdIds?.map(item => item.apd_id) || [])];
-
-        if (uniqueApdIds.length === 0) {
-            throw new Error(`Tidak ada data distribusi APD untuk periode yang dipilih.`);
-        }
-
-        // Ambil detail APD items berdasarkan ID yang ada di daily
+        // Ambil SEMUA APD items (tidak hanya yang ada di daily)
+        // Ini memastikan APD baru atau yang belum pernah didistribusi juga masuk ke rekap
         const { data: apdItems, error: apdItemsError } = await supabase
             .from('apd_items')
             .select('*')
-            .in('id', uniqueApdIds)
             .order('name', { ascending: true });
 
         if (apdItemsError) {
@@ -378,7 +365,8 @@ async function generateBatchRekapFallback(periode: string): Promise<BatchRekapDa
             // Ambil stock awal dari apd_items.jumlah (konsep baru)
             const stockAwal = item.jumlah || 0;
 
-            // Hitung total distribusi dari apd_daily
+            // Hitung total distribusi dari apd_daily untuk periode yang dipilih
+            // PENTING: Jika tidak ada distribusi, totalDistribusi akan menjadi 0 (bukan default)
             const { data: dailyTotal } = await supabase
                 .from('apd_daily')
                 .select('qty')
@@ -386,10 +374,19 @@ async function generateBatchRekapFallback(periode: string): Promise<BatchRekapDa
                 .gte('periode', `${year}-${String(month).padStart(2, '0')}-01`)
                 .lt('periode', `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`);
 
+            // Hitung total distribusi: jika tidak ada data daily, distribusi = 0 (bukan error)
             const totalDistribusi = dailyTotal?.reduce((sum, daily) => sum + (daily.qty || 0), 0) || 0;
 
             const realisasi = 0; // Default 0, bisa edit manual
             const saldoAkhir = stockAwal + realisasi - totalDistribusi;
+
+            // Log untuk debugging
+            console.log(`Processing APD: ${item.name}`, {
+                stockAwal,
+                totalDistribusi,
+                saldoAkhir,
+                dailyRecords: dailyTotal?.length || 0
+            });
 
             // Cek apakah sudah ada record untuk periode ini
             const { data: existingRecord } = await supabase

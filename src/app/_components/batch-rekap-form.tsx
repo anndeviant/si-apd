@@ -128,7 +128,8 @@ export function BatchRekapForm() {
             </h2>
           </div>
           <p className="text-sm text-gray-600">
-            Generate laporan neraca APD bulanan otomatis dari data harian
+            Generate laporan neraca APD bulanan untuk semua item APD (termasuk
+            yang belum ada distribusi)
           </p>
         </div>
 
@@ -241,7 +242,8 @@ export function BatchRekapForm() {
             <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-300" />
             <p className="text-sm">Belum ada data untuk periode ini</p>
             <p className="text-xs text-gray-400">
-              Klik Generate Rekap untuk membuat laporan
+              Klik Generate Rekap untuk membuat laporan (semua APD akan
+              diproses)
             </p>
           </div>
         ) : (

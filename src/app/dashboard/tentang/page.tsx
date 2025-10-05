@@ -61,7 +61,7 @@ export default function TentangPage() {
               Tentang SI-APD
             </h3>
             <div className="space-y-4 text-gray-600">
-              <p>
+              <p className="text-justify">
                 <strong className="text-gray-900">
                   SI-APD (Sistem Informasi Alat Pelindung Diri)
                 </strong>{" "}
@@ -70,7 +70,7 @@ export default function TentangPage() {
                 Aplikasi ini dirancang untuk memberikan solusi terintegrasi
                 dalam pengelolaan keselamatan dan kesehatan kerja.
               </p>
-              <p>
+              <p className="text-justify">
                 Sistem ini menerapkan prinsip{" "}
                 <em>&ldquo;Keselamatan Anda Prioritas Kami&rdquo;</em> dengan
                 menyediakan platform digital yang memudahkan proses pengajuan,
@@ -95,7 +95,7 @@ export default function TentangPage() {
               Tentang Poltekkes Kemenkes Yogyakarta
             </h3>
             <div className="space-y-4 text-gray-600">
-              <p>
+              <p className="text-justify">
                 <strong className="text-gray-900">
                   Politeknik Kesehatan Kementerian Kesehatan Yogyakarta
                 </strong>{" "}
@@ -105,7 +105,7 @@ export default function TentangPage() {
                 Poltekkes Yogyakarta menerapkan standar keselamatan kerja yang
                 ketat di seluruh aktivitas pendidikan dan operasionalnya.
               </p>
-              <p>
+              <p className="text-justify">
                 Unit HSE (Health, Safety, and Environment) Rekum bertanggung
                 jawab memastikan lingkungan kerja yang aman dan sehat bagi
                 seluruh civitas akademika melalui pengelolaan APD yang
@@ -125,7 +125,7 @@ export default function TentangPage() {
                   <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
                   <div>
                     <h4 className="font-medium text-gray-900">Pengajuan APD</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 text-justify">
                       Sistem pengajuan digital untuk permintaan APD dengan
                       tracking status dan approval workflow
                     </p>
@@ -137,7 +137,7 @@ export default function TentangPage() {
                     <h4 className="font-medium text-gray-900">
                       Distribusi APD
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 text-justify">
                       Pengelolaan distribusi APD dengan monitoring real-time dan
                       dokumentasi penyerahan
                     </p>
@@ -149,7 +149,7 @@ export default function TentangPage() {
                     <h4 className="font-medium text-gray-900">
                       Rekapitulasi & Laporan
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 text-justify">
                       Generate laporan bulanan, batch rekap, dan export data
                       dalam format Excel/PDF
                     </p>
@@ -161,7 +161,7 @@ export default function TentangPage() {
                   <div className="w-2 h-2 bg-orange-600 rounded-full mt-2 flex-shrink-0"></div>
                   <div>
                     <h4 className="font-medium text-gray-900">Stock Opname</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 text-justify">
                       Manajemen inventori APD dengan sistem stock awal dan
                       monitoring ketersediaan
                     </p>
@@ -173,7 +173,7 @@ export default function TentangPage() {
                     <h4 className="font-medium text-gray-900">
                       Manajemen Data
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 text-justify">
                       Pengelolaan data pegawai, divisi, bengkel, dan posisi
                       kerja terintegrasi
                     </p>
@@ -183,7 +183,7 @@ export default function TentangPage() {
                   <div className="w-2 h-2 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
                   <div>
                     <h4 className="font-medium text-gray-900">Keamanan Data</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 text-justify">
                       Autentikasi user dan role-based access control dengan
                       database terenkripsi
                     </p>

@@ -153,20 +153,18 @@ export function StockOpnameForm() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Stock Opname APD
-          </h3>
-          <p className="text-sm text-gray-600">
-            Kelola stock awal APD yang akan digunakan sebagai dasar generate
-            rekap bulanan
-          </p>
-        </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Stock Opname APD
+        </h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Kelola stock awal APD yang akan digunakan sebagai dasar generate rekap
+          bulanan
+        </p>
         <Button
           onClick={handleExportExcel}
           disabled={isLoading || isExporting || apdItems.length === 0}
-          className="bg-green-600 hover:bg-green-700 text-white"
+          className="bg-green-600 hover:bg-green-700 text-white w-full"
         >
           {isExporting ? (
             <>

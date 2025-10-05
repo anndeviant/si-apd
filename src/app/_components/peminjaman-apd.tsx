@@ -14,15 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { DatePickerWithInput } from "@/components/ui/date-picker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +31,7 @@ import {
 } from "@/hooks/use-apd-peminjaman";
 import type { ApdPeminjaman } from "@/lib/types/database";
 import { exportPeminjamanApdToExcel } from "@/lib/exports";
+import { createLocalDate } from "@/lib/utils";
 
 export function PeminjamanApd() {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -69,11 +62,10 @@ export function PeminjamanApd() {
       nama_peminjam: item.nama_peminjam,
       divisi: item.divisi,
       nama_apd: item.nama_apd,
-      tanggal_pinjam: new Date(item.tanggal_pinjam),
+      tanggal_pinjam: createLocalDate(item.tanggal_pinjam),
       tanggal_kembali: item.tanggal_kembali
-        ? new Date(item.tanggal_kembali)
+        ? createLocalDate(item.tanggal_kembali)
         : null,
-      status: item.status,
     });
     setEditId(item.id);
     setShowEditModal(true);
@@ -105,16 +97,6 @@ export function PeminjamanApd() {
     return new Date(dateString).toLocaleDateString("id-ID");
   };
 
-  const getStatusBadge = (status: string) => {
-    const variant =
-      status === "Dipinjam"
-        ? "destructive"
-        : status === "Dikembalikan"
-        ? "default"
-        : "secondary";
-    return <Badge variant={variant}>{status}</Badge>;
-  };
-
   const handleExportExcel = async () => {
     try {
       setIsExporting(true);
@@ -132,7 +114,6 @@ export function PeminjamanApd() {
         nama_apd: item.nama_apd,
         tanggal_pinjam: item.tanggal_pinjam,
         tanggal_kembali: item.tanggal_kembali,
-        status: item.status,
       }));
 
       exportPeminjamanApdToExcel(exportData);
@@ -218,9 +199,6 @@ export function PeminjamanApd() {
                 <TableHead className="min-w-[100px] text-center border text-xs p-2">
                   TGL KEMBALI
                 </TableHead>
-                <TableHead className="min-w-[80px] text-center border text-xs p-2">
-                  STATUS
-                </TableHead>
                 <TableHead className="min-w-[60px] text-center border text-xs p-2">
                   AKSI
                 </TableHead>
@@ -246,9 +224,6 @@ export function PeminjamanApd() {
                   </TableCell>
                   <TableCell className="text-center border text-xs p-2">
                     {formatDate(item.tanggal_kembali)}
-                  </TableCell>
-                  <TableCell className="text-center border text-xs p-2">
-                    {getStatusBadge(item.status)}
                   </TableCell>
                   <TableCell className="text-center border text-xs p-2">
                     <Button
@@ -438,26 +413,6 @@ export function PeminjamanApd() {
                   disabled={isSubmitting}
                 />
               </div>
-            </div>
-
-            {/* Status field - Hanya untuk Edit */}
-            <div className="grid gap-2">
-              <Label htmlFor="edit_status">Status *</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => updateField("status", value)}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Dipinjam">Dipinjam</SelectItem>
-                  <SelectItem value="Dikembalikan">Dikembalikan</SelectItem>
-                  <SelectItem value="Hilang">Hilang</SelectItem>
-                  <SelectItem value="Rusak">Rusak</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 

@@ -7,7 +7,6 @@ interface PeminjamanApdExportData {
     nama_apd: string;
     tanggal_pinjam: string;
     tanggal_kembali?: string;
-    status: string;
 }
 
 /**
@@ -32,7 +31,7 @@ export function exportPeminjamanApdToExcel(data: PeminjamanApdExportData[]): voi
         // Siapkan data untuk worksheet dengan header yang diminta
         const worksheetData = [
             // Header
-            ["NO", "NAMA PEMINJAM", "DIVISI", "NAMA APD", "TGL PINJAM", "TGL KEMBALI", "STATUS"],
+            ["NO", "NAMA PEMINJAM", "DIVISI", "NAMA APD", "TGL PINJAM", "TGL KEMBALI"],
             // Data rows
             ...data.map((item, index) => [
                 index + 1, // NO
@@ -41,7 +40,6 @@ export function exportPeminjamanApdToExcel(data: PeminjamanApdExportData[]): voi
                 item.nama_apd, // NAMA APD
                 formatDate(item.tanggal_pinjam), // TGL PINJAM
                 formatDate(item.tanggal_kembali), // TGL KEMBALI
-                item.status, // STATUS
             ]),
         ];
 
@@ -56,7 +54,6 @@ export function exportPeminjamanApdToExcel(data: PeminjamanApdExportData[]): voi
             { width: 25 }, // NAMA APD
             { width: 12 }, // TGL PINJAM
             { width: 12 }, // TGL KEMBALI
-            { width: 15 }, // STATUS
         ];
 
         // Style header row (bold)
@@ -67,7 +64,7 @@ export function exportPeminjamanApdToExcel(data: PeminjamanApdExportData[]): voi
         };
 
         // Apply header styling
-        const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1:G1");
+        const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1:F1");
         for (let col = range.s.c; col <= range.e.c; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
             if (!worksheet[cellAddress]) continue;
@@ -121,34 +118,6 @@ export function exportPeminjamanApdToExcel(data: PeminjamanApdExportData[]): voi
             if (worksheet[tglKembaliCellAddress]) {
                 worksheet[tglKembaliCellAddress].s = {
                     alignment: { horizontal: "center", vertical: "center" },
-                };
-            }
-
-            // STATUS column (G) - center align dengan conditional formatting
-            const statusCellAddress = XLSX.utils.encode_cell({ r: row, c: 6 });
-            if (worksheet[statusCellAddress]) {
-                const status = data[row - 1]?.status;
-                let fillColor = "FFFFFF"; // default white
-
-                // Color coding berdasarkan status
-                switch (status) {
-                    case "Dipinjam":
-                        fillColor = "FFEBEE"; // Light red
-                        break;
-                    case "Dikembalikan":
-                        fillColor = "E8F5E8"; // Light green
-                        break;
-                    case "Hilang":
-                        fillColor = "FFF3E0"; // Light orange
-                        break;
-                    case "Rusak":
-                        fillColor = "FCE4EC"; // Light pink
-                        break;
-                }
-
-                worksheet[statusCellAddress].s = {
-                    alignment: { horizontal: "center", vertical: "center" },
-                    fill: { fgColor: { rgb: fillColor } },
                 };
             }
         }

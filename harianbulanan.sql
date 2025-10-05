@@ -58,7 +58,6 @@ CREATE TABLE public.apd_peminjaman (
   nama_apd text,
   tanggal_pinjam date,
   tanggal_kembali date,
-  status text DEFAULT 'Dipinjam'::text,
   CONSTRAINT apd_peminjaman_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.divisi (

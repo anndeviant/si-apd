@@ -131,7 +131,11 @@ export function calculatePeriode(tanggal: string): string {
 }
 
 export function formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
+    // Menggunakan local timezone untuk menghindari masalah konversi timezone
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 // Pengeluaran Pekerja functions
@@ -508,7 +512,6 @@ export async function updateApdMonthly(
 
 // APD Peminjaman functions
 export async function fetchApdPeminjaman(filters?: {
-    status?: string;
     nama_peminjam?: string;
     divisi?: string;
 }): Promise<ApdPeminjaman[]> {
@@ -517,9 +520,6 @@ export async function fetchApdPeminjaman(filters?: {
         .select('*')
         .order('created_at', { ascending: false });
 
-    if (filters?.status) {
-        query = query.eq('status', filters.status);
-    }
     if (filters?.nama_peminjam) {
         query = query.ilike('nama_peminjam', `%${filters.nama_peminjam}%`);
     }

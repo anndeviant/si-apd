@@ -129,7 +129,6 @@ export interface ApdPeminjaman {
     nama_apd: string;
     tanggal_pinjam: string;
     tanggal_kembali?: string;
-    status: string;
 }
 
 export interface CreateApdPeminjamanData {
@@ -138,7 +137,6 @@ export interface CreateApdPeminjamanData {
     nama_apd: string;
     tanggal_pinjam: string;
     tanggal_kembali?: string;
-    status: string;
 }
 
 export interface UpdateApdPeminjamanData {
@@ -147,7 +145,6 @@ export interface UpdateApdPeminjamanData {
     nama_apd?: string;
     tanggal_pinjam?: string;
     tanggal_kembali?: string;
-    status?: string;
 }
 
 // Divisi types

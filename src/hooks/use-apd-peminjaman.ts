@@ -15,7 +15,6 @@ export interface PeminjamanFormData {
     nama_apd: string;
     tanggal_pinjam: Date;
     tanggal_kembali: Date | null;
-    status: string;
 }
 
 const initialFormData: PeminjamanFormData = {
@@ -24,11 +23,9 @@ const initialFormData: PeminjamanFormData = {
     nama_apd: '',
     tanggal_pinjam: new Date(),
     tanggal_kembali: null,
-    status: 'Dipinjam',
 };
 
 interface UseApdPeminjamanFilters {
-    status?: string;
     nama_peminjam?: string;
     divisi?: string;
 }
@@ -75,7 +72,6 @@ export function useApdPeminjaman(filters?: UseApdPeminjamanFilters) {
                 tanggal_kembali: formData.tanggal_kembali
                     ? formatDate(formData.tanggal_kembali)
                     : undefined,
-                status: formData.status,
             };
 
             await createApdPeminjaman(submitData);
@@ -110,7 +106,6 @@ export function useApdPeminjaman(filters?: UseApdPeminjamanFilters) {
                 tanggal_kembali: formData.tanggal_kembali
                     ? formatDate(formData.tanggal_kembali)
                     : undefined,
-                status: formData.status,
             };
 
             await updateApdPeminjaman(id, updateData);
@@ -155,13 +150,20 @@ export function useApdPeminjaman(filters?: UseApdPeminjamanFilters) {
         if (!formData.nama_apd.trim()) {
             return 'Nama APD harus diisi';
         }
-        if (!formData.status) {
-            return 'Status harus dipilih';
-        }
 
         // Validate tanggal kembali tidak lebih awal dari tanggal pinjam
-        if (formData.tanggal_kembali && formData.tanggal_kembali < formData.tanggal_pinjam) {
-            return 'Tanggal kembali tidak boleh lebih awal dari tanggal pinjam';
+        // Bandingkan hanya tanggal saja (tanpa waktu) untuk menghindari masalah timezone/waktu
+        if (formData.tanggal_kembali) {
+            const tanggalPinjam = new Date(formData.tanggal_pinjam);
+            const tanggalKembali = new Date(formData.tanggal_kembali);
+
+            // Reset waktu ke 00:00:00 untuk perbandingan yang akurat
+            tanggalPinjam.setHours(0, 0, 0, 0);
+            tanggalKembali.setHours(0, 0, 0, 0);
+
+            if (tanggalKembali < tanggalPinjam) {
+                return 'Tanggal kembali tidak boleh lebih awal dari tanggal pinjam';
+            }
         }
 
         return null;

@@ -53,7 +53,17 @@ export function DatePickerWithInput({
 
     if (match) {
       const [, day, month, year] = match;
-      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+      // Create date with explicit time to avoid timezone issues
+      const date = new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        12,
+        0,
+        0,
+        0
+      );
 
       // Validate the date
       if (

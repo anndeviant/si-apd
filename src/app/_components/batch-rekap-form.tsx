@@ -9,6 +9,7 @@ import {
   Download,
   Save,
   AlertTriangle,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,6 +58,7 @@ export function BatchRekapForm() {
     updateEditFormData,
     saveEditWithData,
     startEdit,
+    exportToExcel,
     error,
     clearMessages,
   } = useBatchRekap();
@@ -134,7 +136,7 @@ export function BatchRekapForm() {
         </div>
 
         {/* Form Controls */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-700">
               Pilih Periode
@@ -200,6 +202,18 @@ export function BatchRekapForm() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+          </div>
+          <div className="flex flex-col justify-end">
+            <Button
+              onClick={exportToExcel}
+              disabled={monthlyData.length === 0 || isLoading}
+              variant="outline"
+              className="w-full h-9 text-sm"
+              size="sm"
+            >
+              <FileSpreadsheet className="mr-2 h-3 w-3" />
+              Export Excel
+            </Button>
           </div>
         </div>
 

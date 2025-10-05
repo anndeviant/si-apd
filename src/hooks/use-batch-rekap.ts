@@ -7,6 +7,7 @@ import {
     getAvailableMonthlyPeriods,
     calculatePeriode
 } from '@/lib/database/apd';
+import { exportBatchRekapToExcel } from '@/lib/exports';
 import type {
     ApdMonthlyWithRelations,
     UpdateApdMonthlyData
@@ -216,6 +217,40 @@ export function useBatchRekap() {
         return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
     };
 
+    const formatPeriodeForExcel = (date: Date): string => {
+        const monthNames = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+        const month = monthNames[date.getMonth()];
+        const year = date.getFullYear();
+
+        // Format: 01 - 31 Agustus 2025
+        const lastDay = new Date(year, date.getMonth() + 1, 0).getDate();
+        return `01 - ${lastDay} ${month} ${year}`;
+    };
+
+    const exportToExcel = async (): Promise<boolean> => {
+        try {
+            if (monthlyData.length === 0) {
+                setError('Tidak ada data untuk di-export');
+                return false;
+            }
+
+            const periode = formatPeriodeForExcel(formData.periode);
+            console.log('Debug - formData.periode:', formData.periode);
+            console.log('Debug - formatted periode:', periode);
+            const filename = exportBatchRekapToExcel(monthlyData, { periode });
+
+            toast.success(`File Excel berhasil didownload: ${filename}`);
+            return true;
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to export Excel';
+            setError(errorMessage);
+            return false;
+        }
+    };
+
     return {
         // Form data
         formData,
@@ -234,6 +269,7 @@ export function useBatchRekap() {
         // Actions
         generateRekap,
         loadMonthlyData,
+        exportToExcel,
 
         // Edit functionality
         editingRow,

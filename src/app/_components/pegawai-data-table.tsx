@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { usePegawaiData } from "@/hooks/use-pegawai-data";
-import { exportPegawaiToExcel } from "@/lib/excel-export";
+import { exportPegawaiToExcel } from "@/lib/exports";
 
 export default function PegawaiDataTable() {
   const {

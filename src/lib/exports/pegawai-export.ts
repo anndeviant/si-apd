@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { PegawaiWithRelations } from './types/database';
+import type { PegawaiWithRelations } from '../types/database';
 
 interface ExcelExportOptions {
     filename?: string;

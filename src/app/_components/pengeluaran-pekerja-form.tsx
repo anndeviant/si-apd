@@ -28,18 +28,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
+import { Trash2, Download } from "lucide-react";
 import { useApdItems } from "@/hooks/use-apd-items";
 import {
   usePengeluaranPekerja,
   formatPeriodeDisplay,
   formatTanggal,
 } from "@/hooks/use-pengeluaran-pekerja";
+import { exportPengeluaranPekerjaToExcel } from "@/lib/exports";
+import { toast } from "sonner";
 
 export default function PengeluaranPekerjaForm() {
   const [selectedPeriode, setSelectedPeriode] = useState<string>("");
   const [selectedApdId, setSelectedApdId] = useState<number | undefined>();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   // Hooks untuk data
   const { items: apdItems = [] } = useApdItems();
@@ -62,6 +65,40 @@ export default function PengeluaranPekerjaForm() {
 
     if (success) {
       // Data will be automatically refreshed by the hook
+    }
+  };
+
+  const handleExportExcel = async () => {
+    if (!selectedPeriode || pengeluaranData.length === 0) {
+      toast.error("Tidak ada data untuk diekspor");
+      return;
+    }
+
+    setIsExporting(true);
+
+    try {
+      // Get APD name for the export
+      const apdName = selectedApdId
+        ? apdItems.find((item) => item.id === selectedApdId)?.name ||
+          "Semua APD"
+        : "Semua APD";
+
+      const filename = await exportPengeluaranPekerjaToExcel(pengeluaranData, {
+        periode: formatPeriodeDisplay(selectedPeriode),
+        apdName: apdName,
+        filename: `Laporan_Pengeluaran_APD_${selectedPeriode.replace(
+          /\//g,
+          "_"
+        )}`,
+        sheetName: "Pengeluaran APD",
+      });
+
+      toast.success(`File Excel berhasil dibuat: ${filename}`);
+    } catch (error) {
+      console.error("Error exporting Excel:", error);
+      toast.error("Gagal membuat file Excel");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -182,11 +219,20 @@ export default function PengeluaranPekerjaForm() {
         selectedPeriode &&
         pengeluaranData.length > 0 && (
           <>
-            {/* Label Laporan */}
-            <div className="mb-3">
+            {/* Label Laporan dan Tombol Export */}
+            <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <h3 className="text-sm font-semibold text-gray-800">
                 Laporan Pengeluaran APD
               </h3>
+              <Button
+                onClick={handleExportExcel}
+                disabled={isExporting || pengeluaranData.length === 0}
+                className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white"
+                size="sm"
+              >
+                <Download className="h-3 w-3 mr-1" />
+                {isExporting ? "Membuat Excel..." : "Export Excel"}
+              </Button>
             </div>
 
             {/* Tabel dengan horizontal scroll */}

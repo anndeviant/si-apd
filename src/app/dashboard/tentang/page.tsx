@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { ArrowLeft } from "lucide-react";
 import Header from "@/components/header";
+import Image from "next/image";
 
 export default function TentangPage() {
   const router = useRouter();
@@ -81,7 +82,16 @@ export default function TentangPage() {
 
           {/* Tentang Instansi */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="flex items-center justify-center mb-6">
+              <Image
+                src="/rekum.png"
+                alt="Logo Rekum"
+                width={120}
+                height={120}
+                className="object-contain"
+              />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
               Tentang Poltekkes Kemenkes Yogyakarta
             </h3>
             <div className="space-y-4 text-gray-600">

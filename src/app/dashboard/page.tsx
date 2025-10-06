@@ -89,7 +89,7 @@ export default function DashboardPage() {
               <p className="text-sm font-bold text-gray-700 mb-0.5">
                 HSE REKUM
               </p>
-              <p className="text-sm text-blue-600 font-medium mb-1">
+              <p className="text-sm text-blue-700 font-medium mb-1">
                 @{user.email?.split("@")[0] || "user"}
               </p>
               <p className="text-xs text-gray-500 italic leading-snug">

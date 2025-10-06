@@ -21,10 +21,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Upload, Trash2 } from "lucide-react";
+import { Edit, Upload, Trash2, FileDown, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { usePegawaiHelm } from "@/hooks/use-pegawai-helm";
 import { ImagePreview } from "@/components/ui/image-preview";
+import { exportPegawaiHelmToExcel } from "@/lib/exports";
 
 export default function PegawaiHelmTable() {
   const {
@@ -36,6 +38,7 @@ export default function PegawaiHelmTable() {
   } = usePegawaiHelm();
 
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (pegawaiId: number, file: File) => {
@@ -68,6 +71,35 @@ export default function PegawaiHelmTable() {
     window.open(link, "_blank");
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+
+      if (pegawaiData.length === 0) {
+        toast.error("Tidak ada data untuk diexport");
+        return;
+      }
+
+      // Transform data sesuai interface yang dibutuhkan untuk export
+      const exportData = pegawaiData.map((item) => ({
+        id: item.id,
+        no: item.no,
+        nama: item.nama,
+        nip: item.nip,
+        warna_helm: item.warna_helm,
+        signed_url_helm: item.signed_url_helm,
+      }));
+
+      exportPegawaiHelmToExcel(exportData);
+      toast.success("Data helm berhasil diexport ke Excel");
+    } catch (err) {
+      toast.error("Gagal export data helm ke Excel");
+      console.error(err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -86,9 +118,17 @@ export default function PegawaiHelmTable() {
           <h3 className="text-lg font-semibold text-gray-900">
             Data Serah Terima Helm
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 mb-4">
             Kelola dokumentasi serah terima helm untuk setiap pegawai
           </p>
+          <Button
+            onClick={handleExportExcel}
+            disabled={true}
+            className="bg-green-600 hover:bg-green-700 text-white w-full opacity-50"
+          >
+            <FileDown className="mr-2 h-4 w-4" />
+            Export Excel
+          </Button>
         </div>
         <div className="flex items-center justify-center p-8">
           <div className="text-center text-gray-500">
@@ -111,9 +151,26 @@ export default function PegawaiHelmTable() {
         <h3 className="text-lg font-semibold text-gray-900">
           Data Serah Terima Helm
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 mb-4">
           Kelola dokumentasi serah terima helm untuk setiap pegawai
         </p>
+        <Button
+          onClick={handleExportExcel}
+          disabled={isLoading || isExporting || pegawaiData.length === 0}
+          className="bg-green-600 hover:bg-green-700 text-white w-full"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            <>
+              <FileDown className="mr-2 h-4 w-4" />
+              Export Excel
+            </>
+          )}
+        </Button>
       </div>
 
       <div className="w-full overflow-x-auto">

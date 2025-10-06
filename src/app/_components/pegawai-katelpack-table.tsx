@@ -21,13 +21,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Upload, Trash2 } from "lucide-react";
+import { Edit, Upload, Trash2, FileDown, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { ImagePreview } from "@/components/ui/image-preview";
 
 import {
   usePegawaiKatelpack,
   PegawaiKatelpackData,
 } from "@/hooks/use-pegawai-katelpack";
+import { exportPegawaiKatelpackToExcel } from "@/lib/exports";
 
 export default function PegawaiKatelpackTable() {
   const {
@@ -39,6 +41,7 @@ export default function PegawaiKatelpackTable() {
   } = usePegawaiKatelpack();
 
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (pegawaiId: number, file: File) => {
@@ -71,6 +74,36 @@ export default function PegawaiKatelpackTable() {
     window.open(link, "_blank");
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+
+      if (pegawaiData.length === 0) {
+        toast.error("Tidak ada data untuk diexport");
+        return;
+      }
+
+      // Transform data sesuai interface yang dibutuhkan untuk export
+      const exportData = pegawaiData.map((item) => ({
+        id: item.id,
+        no: item.no,
+        nama: item.nama,
+        nip: item.nip,
+        warna_katelpack: item.warna_katelpack,
+        size_katelpack: item.size_katelpack,
+        signed_url_katelpack: item.signed_url_katelpack,
+      }));
+
+      exportPegawaiKatelpackToExcel(exportData);
+      toast.success("Data katelpack berhasil diexport ke Excel");
+    } catch (err) {
+      toast.error("Gagal export data katelpack ke Excel");
+      console.error(err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -91,9 +124,17 @@ export default function PegawaiKatelpackTable() {
           <h3 className="text-lg font-semibold text-gray-900">
             Data Serah Terima Katelpack
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 mb-4">
             Kelola dokumentasi serah terima katelpack untuk setiap pegawai
           </p>
+          <Button
+            onClick={handleExportExcel}
+            disabled={true}
+            className="bg-green-600 hover:bg-green-700 text-white w-full opacity-50"
+          >
+            <FileDown className="mr-2 h-4 w-4" />
+            Export Excel
+          </Button>
         </div>
         <div className="flex items-center justify-center p-8">
           <div className="text-center text-gray-500">
@@ -116,9 +157,26 @@ export default function PegawaiKatelpackTable() {
         <h3 className="text-lg font-semibold text-gray-900">
           Data Serah Terima Katelpack
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 mb-4">
           Kelola dokumentasi serah terima katelpack untuk setiap pegawai
         </p>
+        <Button
+          onClick={handleExportExcel}
+          disabled={isLoading || isExporting || pegawaiData.length === 0}
+          className="bg-green-600 hover:bg-green-700 text-white w-full"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            <>
+              <FileDown className="mr-2 h-4 w-4" />
+              Export Excel
+            </>
+          )}
+        </Button>
       </div>
 
       <div className="w-full overflow-x-auto">

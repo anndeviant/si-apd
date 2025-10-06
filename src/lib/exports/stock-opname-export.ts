@@ -94,7 +94,6 @@ export function exportStockOpnameToExcel(data: StockOpnameExportData[]): void {
         // Export file
         XLSX.writeFile(workbook, filename);
 
-        console.log(`Stock opname APD exported to: ${filename}`);
     } catch (error) {
         console.error("Error exporting stock opname to Excel:", error);
         throw new Error("Gagal mengexport data ke Excel");

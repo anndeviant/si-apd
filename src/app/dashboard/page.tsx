@@ -77,6 +77,7 @@ export default function DashboardPage() {
             {/* Profile Photo */}
             <div className="flex-shrink-0">
               <UserProfilePhoto
+                key={logoFile?.id || "no-photo"}
                 photoUrl={logoFile?.file_url}
                 size="lg"
                 className="border-2 border-blue-100"

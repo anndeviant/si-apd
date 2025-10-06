@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ interface UserProfilePhotoProps {
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
   showDefaultIcon?: boolean;
+  key?: string | number; // Add key prop to force re-render
 }
 
 const sizeClasses = {
@@ -33,6 +34,18 @@ export function UserProfilePhoto({
 }: UserProfilePhotoProps) {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(!!photoUrl);
+  const [imageKey, setImageKey] = useState(0);
+  const prevPhotoUrl = useRef(photoUrl);
+
+  // Reset state when photoUrl changes
+  useEffect(() => {
+    if (prevPhotoUrl.current !== photoUrl) {
+      setImageError(false);
+      setIsLoading(!!photoUrl);
+      setImageKey((prev) => prev + 1); // Force image re-render
+      prevPhotoUrl.current = photoUrl;
+    }
+  }, [photoUrl]);
 
   // Debug logging
   if (process.env.NODE_ENV === "development") {
@@ -81,7 +94,8 @@ export function UserProfilePhoto({
       )}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={photoUrl}
+        key={imageKey}
+        src={`${photoUrl}${photoUrl?.includes("?") ? "&" : "?"}t=${imageKey}`}
         alt="Profile Photo"
         className="w-full h-full object-cover rounded-full"
         onLoad={handleImageLoad}

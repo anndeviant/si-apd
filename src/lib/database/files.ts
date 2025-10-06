@@ -113,8 +113,6 @@ export async function verifyAndCleanupFile(fileRecord: ApdFiles): Promise<boolea
             .download(fileName);
 
         if (error) {
-            // File doesn't exist, cleanup database record
-            console.log(`File not found in storage, deleting database record for ID: ${fileRecord.id}`);
             await deleteFileRecord(fileRecord.id);
             return false;
         }

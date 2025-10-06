@@ -134,7 +134,6 @@ export function exportPeminjamanApdToExcel(data: PeminjamanApdExportData[]): voi
         // Export file
         XLSX.writeFile(workbook, filename);
 
-        console.log(`Peminjaman APD exported to: ${filename}`);
     } catch (error) {
         console.error("Error exporting peminjaman APD to Excel:", error);
         throw new Error("Gagal mengexport data ke Excel");

@@ -121,6 +121,7 @@ export default function PengaturanPage() {
                 <div className="relative">
                   {logoFile?.file_url ? (
                     <UserProfilePhoto
+                      key={logoFile.id} // Force re-render when logoFile changes
                       photoUrl={logoFile.file_url}
                       size="xl"
                       className="border-4 border-gray-300"

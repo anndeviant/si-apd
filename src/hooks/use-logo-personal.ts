@@ -93,14 +93,16 @@ export function useLogoPersonal(user: User | null): UseLogoPersonalReturn {
             // If there's an existing logo, we'll update it; otherwise create new
             const existingFileId = logoFile?.id || null;
 
-            const { fileRecord } = await completeFileUpload(
+            await completeFileUpload(
                 file,
                 "logo_personal",
                 user.id,
                 existingFileId
             );
 
-            setLogoFile(fileRecord);
+            // Force refresh the logo file to get the updated URL
+            await fetchLogoFile();
+
             toast.success("Photo profile berhasil diupload!");
         } catch (err) {
             toast.error(err instanceof Error ? err.message : "Gagal mengupload logo");
@@ -121,6 +123,8 @@ export function useLogoPersonal(user: User | null): UseLogoPersonalReturn {
         try {
             await completeFileDeletion(logoFile);
             setLogoFile(null);
+            // Force refresh to ensure clean state
+            await fetchLogoFile();
             toast.success("Photo profile berhasil dihapus!");
         } catch (err) {
             toast.error(err instanceof Error ? err.message : "Gagal menghapus logo");

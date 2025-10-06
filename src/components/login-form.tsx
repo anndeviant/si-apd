@@ -58,7 +58,7 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6 px-4 py-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-4 px-4 py-6", className)} {...props}>
       <Card>
         <CardHeader>
           {/* Header dengan Logo */}
@@ -150,7 +150,7 @@ export function LoginForm({
 
       {/* Footer */}
       <div className="text-center">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-700">
           Created by Poltekkes Kemenkes Yogyakarta 2025
         </p>
       </div>

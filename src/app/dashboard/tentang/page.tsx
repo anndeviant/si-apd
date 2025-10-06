@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { ArrowLeft } from "lucide-react";
 import Header from "@/components/header";
+import Image from "next/image";
 
 export default function TentangPage() {
   const router = useRouter();
@@ -75,6 +76,17 @@ export default function TentangPage() {
 
           {/* Tentang Kreator */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
+            {/* Logo Poltekkes */}
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/logopolkesyobaru.jpeg"
+                alt="Logo Poltekkes Kemenkes Yogyakarta"
+                width={300}
+                height={300}
+                className="object-contain"
+              />
+            </div>
+
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Tentang Kreator
             </h3>
@@ -85,9 +97,7 @@ export default function TentangPage() {
                 digital di Biro K3LH Divisi Rekayasa Umum PT PAL Indonesia.
               </p>
               <p className="text-justify">
-                <strong className="text-gray-900">
-                  Adapun tim kreator aplikasi ini terdiri dari:
-                </strong>
+                Adapun tim kreator aplikasi ini terdiri dari:
               </p>
               <ul className="list-decimal list-inside space-y-1 ml-4">
                 <li>Annisa Salsabila</li>

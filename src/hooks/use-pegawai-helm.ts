@@ -6,7 +6,8 @@ import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import {
     uploadAndUpdateApdDocumentation,
-    deleteAndUpdateApdDocumentation
+    deleteAndUpdateApdDocumentation,
+    generateSignedUrl
 } from "@/lib/uploads/apd-documentation";
 
 export interface PegawaiHelmData {
@@ -16,12 +17,15 @@ export interface PegawaiHelmData {
     nip?: string;
     warna_helm?: string;
     link_helm?: string;
+    signed_url_helm?: string; // Generated on-demand signed URL
 }
 
 export function usePegawaiHelm() {
     const [pegawaiData, setPegawaiData] = useState<PegawaiHelmData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState<{ [key: number]: boolean }>({});
+
+
 
     // Fetch data pegawai yang memiliki data helm
     const fetchPegawaiHelm = useCallback(async () => {
@@ -41,11 +45,29 @@ export function usePegawaiHelm() {
                 return;
             }
 
-            // Format data dengan nomor urut
-            const formattedData: PegawaiHelmData[] = (data || []).map((item, index) => ({
-                ...item,
-                no: index + 1
-            }));
+            // Format data dengan nomor urut dan generate signed URLs
+            const formattedData: PegawaiHelmData[] = await Promise.all(
+                (data || []).map(async (item, index) => {
+                    let signed_url_helm: string | undefined;
+
+                    // Generate signed URL if file path exists
+                    if (item.link_helm && !item.link_helm.startsWith('http')) {
+                        const signedResult = await generateSignedUrl(item.link_helm);
+                        if (signedResult.success) {
+                            signed_url_helm = signedResult.url;
+                        }
+                    } else if (item.link_helm && item.link_helm.startsWith('http')) {
+                        // If it's already a URL (backward compatibility), use as is
+                        signed_url_helm = item.link_helm;
+                    }
+
+                    return {
+                        ...item,
+                        no: index + 1,
+                        signed_url_helm
+                    };
+                })
+            );
 
             setPegawaiData(formattedData);
         } catch (error) {
@@ -66,10 +88,17 @@ export function usePegawaiHelm() {
             const result = await uploadAndUpdateApdDocumentation(file, "HELM", pegawaiId);
 
             if (result.success) {
+                // Generate signed URL for the new file
+                const signedResult = await generateSignedUrl(result.url!);
+
                 // Update local state
                 setPegawaiData(prev => prev.map(item =>
                     item.id === pegawaiId
-                        ? { ...item, link_helm: result.url }
+                        ? {
+                            ...item,
+                            link_helm: result.url,
+                            signed_url_helm: signedResult.success ? signedResult.url : undefined
+                        }
                         : item
                 ));
                 toast.success("Dokumentasi helm berhasil diupload dan disimpan");
@@ -103,7 +132,7 @@ export function usePegawaiHelm() {
                 // Update local state
                 setPegawaiData(prev => prev.map(item =>
                     item.id === pegawaiId
-                        ? { ...item, link_helm: undefined }
+                        ? { ...item, link_helm: undefined, signed_url_helm: undefined }
                         : item
                 ));
                 toast.success("Dokumentasi helm berhasil dihapus");
@@ -124,6 +153,8 @@ export function usePegawaiHelm() {
     useEffect(() => {
         fetchPegawaiHelm();
     }, [fetchPegawaiHelm]);
+
+
 
     return {
         pegawaiData,

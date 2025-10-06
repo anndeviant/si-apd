@@ -6,7 +6,8 @@ import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import {
     uploadAndUpdateApdDocumentation,
-    deleteAndUpdateApdDocumentation
+    deleteAndUpdateApdDocumentation,
+    generateSignedUrl
 } from "@/lib/uploads/apd-documentation";
 
 export interface PegawaiKatelpackData {
@@ -17,6 +18,7 @@ export interface PegawaiKatelpackData {
     warna_katelpack?: string;
     size_katelpack?: string;
     link_katelpack?: string;
+    signed_url_katelpack?: string; // Generated on-demand signed URL
 }
 
 export function usePegawaiKatelpack() {
@@ -48,11 +50,29 @@ export function usePegawaiKatelpack() {
                 (item.size_katelpack && item.size_katelpack.trim() !== "")
             );
 
-            // Format data dengan nomor urut
-            const formattedData: PegawaiKatelpackData[] = filteredData.map((item, index) => ({
-                ...item,
-                no: index + 1
-            }));
+            // Format data dengan nomor urut dan generate signed URLs
+            const formattedData: PegawaiKatelpackData[] = await Promise.all(
+                filteredData.map(async (item, index) => {
+                    let signed_url_katelpack: string | undefined;
+
+                    // Generate signed URL if file path exists
+                    if (item.link_katelpack && !item.link_katelpack.startsWith('http')) {
+                        const signedResult = await generateSignedUrl(item.link_katelpack);
+                        if (signedResult.success) {
+                            signed_url_katelpack = signedResult.url;
+                        }
+                    } else if (item.link_katelpack && item.link_katelpack.startsWith('http')) {
+                        // If it's already a URL (backward compatibility), use as is
+                        signed_url_katelpack = item.link_katelpack;
+                    }
+
+                    return {
+                        ...item,
+                        no: index + 1,
+                        signed_url_katelpack
+                    };
+                })
+            );
 
             setPegawaiData(formattedData);
         } catch (error) {
@@ -71,10 +91,17 @@ export function usePegawaiKatelpack() {
             const result = await uploadAndUpdateApdDocumentation(file, "KATELPACK", pegawaiId);
 
             if (result.success) {
+                // Generate signed URL for the new file
+                const signedResult = await generateSignedUrl(result.url!);
+
                 // Update local state
                 setPegawaiData(prev => prev.map(item =>
                     item.id === pegawaiId
-                        ? { ...item, link_katelpack: result.url }
+                        ? {
+                            ...item,
+                            link_katelpack: result.url,
+                            signed_url_katelpack: signedResult.success ? signedResult.url : undefined
+                        }
                         : item
                 ));
                 toast.success("Dokumentasi katelpack berhasil diupload dan disimpan");
@@ -108,7 +135,7 @@ export function usePegawaiKatelpack() {
                 // Update local state
                 setPegawaiData(prev => prev.map(item =>
                     item.id === pegawaiId
-                        ? { ...item, link_katelpack: undefined }
+                        ? { ...item, link_katelpack: undefined, signed_url_katelpack: undefined }
                         : item
                 ));
                 toast.success("Dokumentasi katelpack berhasil dihapus");

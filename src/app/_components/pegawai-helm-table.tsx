@@ -24,6 +24,7 @@ import {
 import { Edit, Upload, Trash2 } from "lucide-react";
 
 import { usePegawaiHelm } from "@/hooks/use-pegawai-helm";
+import { ImagePreview } from "@/components/ui/image-preview";
 
 export default function PegawaiHelmTable() {
   const {
@@ -155,35 +156,19 @@ export default function PegawaiHelmTable() {
                   {pegawai.warna_helm || "-"}
                 </TableCell>
                 <TableCell className="text-center border text-xs p-2">
-                  {pegawai.link_helm ? (
-                    <div className="flex items-center justify-center">
-                      <div className="relative group">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={pegawai.link_helm}
-                          alt={`Helm ${pegawai.nama}`}
-                          className="w-10 h-10 object-cover rounded border border-gray-200 cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() =>
-                            handlePreview(pegawai.link_helm as string)
-                          }
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = "none";
-                            const parent = target.parentElement?.parentElement;
-                            if (parent) {
-                              parent.innerHTML =
-                                '<span class="text-xs text-red-500">Gagal memuat gambar</span>';
-                            }
-                          }}
-                        />
-                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                          Klik untuk memperbesar
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-gray-500">-</span>
-                  )}
+                  <div className="flex justify-center items-center">
+                    {pegawai.signed_url_helm ? (
+                      <ImagePreview
+                        src={pegawai.signed_url_helm}
+                        alt={`Helm ${pegawai.nama}`}
+                        onPreview={() =>
+                          handlePreview(pegawai.signed_url_helm as string)
+                        }
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-500">-</span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-center border text-xs p-2">
                   <div className="flex items-center justify-center space-x-1">

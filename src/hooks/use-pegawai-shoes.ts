@@ -6,7 +6,8 @@ import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import {
     uploadAndUpdateApdDocumentation,
-    deleteAndUpdateApdDocumentation
+    deleteAndUpdateApdDocumentation,
+    generateSignedUrl
 } from "@/lib/uploads/apd-documentation";
 
 export interface PegawaiShoesData {
@@ -17,6 +18,7 @@ export interface PegawaiShoesData {
     size_sepatu?: number;
     jenis_sepatu?: string;
     link_shoes?: string;
+    signed_url_shoes?: string; // Generated on-demand signed URL
 }
 
 export function usePegawaiShoes() {
@@ -48,11 +50,29 @@ export function usePegawaiShoes() {
                 (item.jenis_sepatu && item.jenis_sepatu.trim() !== "")
             );
 
-            // Format data dengan nomor urut
-            const formattedData: PegawaiShoesData[] = filteredData.map((item, index) => ({
-                ...item,
-                no: index + 1
-            }));
+            // Format data dengan nomor urut dan generate signed URLs
+            const formattedData: PegawaiShoesData[] = await Promise.all(
+                filteredData.map(async (item, index) => {
+                    let signed_url_shoes: string | undefined;
+
+                    // Generate signed URL if file path exists
+                    if (item.link_shoes && !item.link_shoes.startsWith('http')) {
+                        const signedResult = await generateSignedUrl(item.link_shoes);
+                        if (signedResult.success) {
+                            signed_url_shoes = signedResult.url;
+                        }
+                    } else if (item.link_shoes && item.link_shoes.startsWith('http')) {
+                        // If it's already a URL (backward compatibility), use as is
+                        signed_url_shoes = item.link_shoes;
+                    }
+
+                    return {
+                        ...item,
+                        no: index + 1,
+                        signed_url_shoes
+                    };
+                })
+            );
 
             setPegawaiData(formattedData);
         } catch (error) {
@@ -71,10 +91,17 @@ export function usePegawaiShoes() {
             const result = await uploadAndUpdateApdDocumentation(file, "SHOES", pegawaiId);
 
             if (result.success) {
+                // Generate signed URL for the new file
+                const signedResult = await generateSignedUrl(result.url!);
+
                 // Update local state
                 setPegawaiData(prev => prev.map(item =>
                     item.id === pegawaiId
-                        ? { ...item, link_shoes: result.url }
+                        ? {
+                            ...item,
+                            link_shoes: result.url,
+                            signed_url_shoes: signedResult.success ? signedResult.url : undefined
+                        }
                         : item
                 ));
                 toast.success("Dokumentasi safety shoes berhasil diupload dan disimpan");
@@ -108,7 +135,7 @@ export function usePegawaiShoes() {
                 // Update local state
                 setPegawaiData(prev => prev.map(item =>
                     item.id === pegawaiId
-                        ? { ...item, link_shoes: undefined }
+                        ? { ...item, link_shoes: undefined, signed_url_shoes: undefined }
                         : item
                 ));
                 toast.success("Dokumentasi safety shoes berhasil dihapus");

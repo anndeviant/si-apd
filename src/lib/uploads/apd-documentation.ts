@@ -66,6 +66,8 @@ export function generateFileName(apdType: ApdType, pegawaiId: number, originalNa
     return `${config.folder}/pegawai-${pegawaiId}-${timestamp}.${fileExtension}`;
 }
 
+
+
 /**
  * Upload file ke Supabase Storage
  */
@@ -84,22 +86,33 @@ export async function uploadApdFile(
         // Generate filename
         const fileName = generateFileName(apdType, pegawaiId, file.name);
 
+        // Check if file already exists and remove it
+        const { data: existingFiles } = await supabase.storage
+            .from("apd-files")
+            .list(FILE_UPLOAD_CONFIG[apdType].folder, {
+                search: `pegawai-${pegawaiId}`
+            });
+
+        if (existingFiles && existingFiles.length > 0) {
+            const filesToRemove = existingFiles.map(f => `${FILE_UPLOAD_CONFIG[apdType].folder}/${f.name}`);
+            await supabase.storage.from("apd-files").remove(filesToRemove);
+        }
+
         // Upload to storage
         const { error: uploadError } = await supabase.storage
             .from("apd-files")
-            .upload(fileName, file);
+            .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: true
+            });
 
         if (uploadError) {
-            console.error("Upload error:", uploadError);
-            return { success: false, error: "Gagal mengupload file ke storage" };
+            return { success: false, error: `Gagal mengupload file: ${uploadError.message}` };
         }
 
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-            .from("apd-files")
-            .getPublicUrl(fileName);
-
-        return { success: true, url: publicUrl };
+        // Return the file path (not signed URL) for storage in database
+        // We'll generate signed URLs on-demand when needed
+        return { success: true, url: fileName };
     } catch (error) {
         console.error("Error in uploadApdFile:", error);
         return { success: false, error: "Terjadi kesalahan saat mengupload file" };
@@ -107,14 +120,43 @@ export async function uploadApdFile(
 }
 
 /**
+ * Generate signed URL from file path (on-demand)
+ * This ensures URLs never expire since they're generated fresh each time
+ */
+export async function generateSignedUrl(filePath: string): Promise<{ success: boolean; url?: string; error?: string }> {
+    try {
+        const { data: signedData, error: signedError } = await supabase.storage
+            .from("apd-files")
+            .createSignedUrl(filePath, 86400); // 24 hours, but we'll generate fresh ones
+
+        if (signedError || !signedData?.signedUrl) {
+            return { success: false, error: "Gagal membuat URL untuk file" };
+        }
+
+        return { success: true, url: signedData.signedUrl };
+    } catch (error) {
+        console.error("Error generating signed URL:", error);
+        return { success: false, error: "Terjadi kesalahan saat membuat URL file" };
+    }
+}
+
+/**
  * Delete file dari Supabase Storage
  */
-export async function deleteApdFile(fileUrl: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteApdFile(filePathOrUrl: string): Promise<{ success: boolean; error?: string }> {
     try {
-        // Extract filename from URL
-        const url = new URL(fileUrl);
-        const pathParts = url.pathname.split('/');
-        const fileName = pathParts.slice(-2).join('/'); // Get last two parts (folder/filename)
+        let fileName: string;
+
+        // Check if it's a URL or a path
+        if (filePathOrUrl.startsWith('http')) {
+            // Extract filename from URL
+            const url = new URL(filePathOrUrl);
+            const pathParts = url.pathname.split('/');
+            fileName = pathParts.slice(-2).join('/'); // Get last two parts (folder/filename)
+        } else {
+            // It's already a path
+            fileName = filePathOrUrl;
+        }
 
         const { error } = await supabase.storage
             .from("apd-files")
@@ -190,6 +232,8 @@ export async function uploadAndUpdateApdDocumentation(
         return { success: false, error: "Terjadi kesalahan saat mengupload dokumentasi" };
     }
 }
+
+
 
 /**
  * Complete flow: delete file dan update database  

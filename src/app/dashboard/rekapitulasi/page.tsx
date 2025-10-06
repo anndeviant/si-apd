@@ -62,7 +62,7 @@ export default function RekapitulasiPage() {
         return (
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">
-              Pengeluaran (Neraca APD Bulanan)
+              Neraca APD
             </h3>
             <ApdProvider>
               <BengkelProvider>
@@ -120,9 +120,7 @@ export default function RekapitulasiPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="stock-opname">Stock Opname</SelectItem>
-              <SelectItem value="pengeluaran">
-                Pengeluaran (Neraca APD)
-              </SelectItem>
+              <SelectItem value="pengeluaran">Neraca APD</SelectItem>
               <SelectItem value="pengeluaran-pekerja">
                 Pengeluaran Pekerja (Harian)
               </SelectItem>

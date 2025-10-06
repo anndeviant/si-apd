@@ -153,8 +153,8 @@ export default function PengajuanPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="project">Pengajuan Project</SelectItem>
-              <SelectItem value="kpi">KPI</SelectItem>
-              <SelectItem value="mandatory">Mandatory APD</SelectItem>
+              <SelectItem value="kpi">[KPI] Form Pengajuan</SelectItem>
+              <SelectItem value="mandatory">[KPI] Mandatory APD</SelectItem>
             </SelectContent>
           </Select>
         </div>

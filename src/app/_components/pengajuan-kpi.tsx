@@ -273,11 +273,10 @@ export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <FileText className="w-5 h-5" />
-          <span>Pengajuan KPI - APD</span>
+          <span>Template Form Pengajuan</span>
         </CardTitle>
         <CardDescription>
-          Upload dokumen pengajuan Key Performance Indicator (KPI) untuk
-          manajemen dan evaluasi kinerja distribusi APD.
+          Upload dokumen pengajuan Key Performance Indicator (KPI)
         </CardDescription>
       </CardHeader>
 
@@ -446,7 +445,7 @@ export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
               >
                 <Upload className="w-4 h-4 mr-2" />
                 <span>
-                  {isUploading ? "Mengupload..." : "Tambah File Pengajuan APD"}
+                  {isUploading ? "Mengupload..." : "Tambah File Pengajuan KPI"}
                 </span>
               </Button>
             </>

@@ -282,12 +282,12 @@ export default function PengeluaranPekerjaForm() {
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
-                              variant="destructive"
+                              variant="ghost"
                               size="sm"
-                              className="h-6 w-6 p-0"
+                              className="h-6 w-6 p-0 hover:bg-red-50"
                               disabled={deletingId === item.id}
                             >
-                              <Trash2 className="h-3 w-3" />
+                              <Trash2 className="h-3 w-3 text-red-600" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>

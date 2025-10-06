@@ -240,7 +240,7 @@ export default function PegawaiHelmTable() {
                               }
                               className="bg-red-600 hover:bg-red-700"
                             >
-                              Hapus Dokumentasi
+                              Hapus
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>

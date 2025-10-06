@@ -81,7 +81,7 @@ export function LoginForm({
 
           {/* Judul Aplikasi */}
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-blue-700 mb-2">SI-APD</h1>
+            <h1 className="text-2xl font-bold text-blue-900 mb-2">SI-APD</h1>
             <p className="text-sm text-gray-600">
               Sistem Informasi APD (Alat Pelindung Diri)
             </p>
@@ -123,7 +123,7 @@ export function LoginForm({
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />

@@ -182,6 +182,9 @@ export interface Pegawai {
     warna_katelpack?: string;
     size_katelpack?: string;
     warna_helm?: string;
+    link_helm?: string;
+    link_shoes?: string;
+    link_katelpack?: string;
 }
 
 export interface PegawaiWithRelations extends Pegawai {
@@ -194,11 +197,14 @@ export interface CreatePegawaiData {
     nip: string;
     divisi_id: number;
     posisi_id: number;
-    size_sepatu?: number;
-    jenis_sepatu?: string;
-    warna_katelpack?: string;
-    size_katelpack?: string;
-    warna_helm?: string;
+    size_sepatu?: number | null;
+    jenis_sepatu?: string | null;
+    warna_katelpack?: string | null;
+    size_katelpack?: string | null;
+    warna_helm?: string | null;
+    link_helm?: string | null;
+    link_shoes?: string | null;
+    link_katelpack?: string | null;
 }
 
 export interface UpdatePegawaiData {
@@ -206,9 +212,12 @@ export interface UpdatePegawaiData {
     nip?: string;
     divisi_id?: number;
     posisi_id?: number;
-    size_sepatu?: number;
-    jenis_sepatu?: string;
-    warna_katelpack?: string;
-    size_katelpack?: string;
-    warna_helm?: string;
+    size_sepatu?: number | null;
+    jenis_sepatu?: string | null;
+    warna_katelpack?: string | null;
+    size_katelpack?: string | null;
+    warna_helm?: string | null;
+    link_helm?: string | null;
+    link_shoes?: string | null;
+    link_katelpack?: string | null;
 }

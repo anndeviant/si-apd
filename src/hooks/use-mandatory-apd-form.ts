@@ -35,9 +35,16 @@ export function useMandatoryApdForm() {
         field: K,
         value: MandatoryApdFormData[K]
     ) => {
+        // Handle empty strings for optional string fields
+        let processedValue = value;
+        if (typeof value === 'string' && value.trim() === '' &&
+            ['jenis_sepatu', 'warna_katelpack', 'size_katelpack', 'warna_helm'].includes(field as string)) {
+            processedValue = '' as MandatoryApdFormData[K];
+        }
+
         setFormData(prev => ({
             ...prev,
-            [field]: value,
+            [field]: processedValue,
         }));
         // Clear error when user makes changes
         if (error) setError(null);
@@ -80,11 +87,12 @@ export function useMandatoryApdForm() {
                 nip: formData.nip.trim(),
                 divisi_id: formData.divisi_id!,
                 posisi_id: formData.posisi_id!,
-                size_sepatu: formData.size_sepatu || undefined,
-                jenis_sepatu: formData.jenis_sepatu.trim() || undefined,
-                warna_katelpack: formData.warna_katelpack.trim() || undefined,
-                size_katelpack: formData.size_katelpack.trim() || undefined,
-                warna_helm: formData.warna_helm.trim() || undefined,
+                // Explicitly set optional fields - send null if empty to override database defaults
+                size_sepatu: (formData.size_sepatu && formData.size_sepatu > 0) ? formData.size_sepatu : null,
+                jenis_sepatu: formData.jenis_sepatu.trim() || null,
+                warna_katelpack: formData.warna_katelpack.trim() || null,
+                size_katelpack: formData.size_katelpack.trim() || null,
+                warna_helm: formData.warna_helm.trim() || null,
             };
 
             await createPegawai(pegawaiData);

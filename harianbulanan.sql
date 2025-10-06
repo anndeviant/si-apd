@@ -78,6 +78,9 @@ CREATE TABLE public.pegawai (
   warna_katelpack character varying DEFAULT '20'::character varying,
   size_katelpack character varying DEFAULT '10'::character varying,
   warna_helm character varying DEFAULT '20'::character varying,
+  link_helm text,
+  link_shoes text,
+  link_katelpack text,
   CONSTRAINT pegawai_pkey PRIMARY KEY (id),
   CONSTRAINT pegawai_divisi_id_fkey FOREIGN KEY (divisi_id) REFERENCES public.divisi(id),
   CONSTRAINT pegawai_posisi_id_fkey FOREIGN KEY (posisi_id) REFERENCES public.posisi(id)

@@ -245,7 +245,7 @@ export default function PegawaiDataTable() {
                         {index + 1}
                       </TableCell>
                       <TableCell className="text-left border text-xs p-2">
-                        {pegawai.nama || "-"}
+                        {pegawai.nama?.trim() || "-"}
                       </TableCell>
                       <TableCell className="text-center border text-xs p-2">
                         {pegawai.posisi?.nama_posisi || "-"}
@@ -254,19 +254,19 @@ export default function PegawaiDataTable() {
                         {pegawai.size_sepatu || "-"}
                       </TableCell>
                       <TableCell className="text-left border text-xs p-2">
-                        {pegawai.jenis_sepatu || "-"}
+                        {pegawai.jenis_sepatu?.trim() || "-"}
                       </TableCell>
                       <TableCell className="text-center border text-xs p-2">
-                        {pegawai.warna_katelpack || "-"}
+                        {pegawai.warna_katelpack?.trim() || "-"}
                       </TableCell>
                       <TableCell className="text-center border text-xs p-2">
-                        {pegawai.size_katelpack || "-"}
+                        {pegawai.size_katelpack?.trim() || "-"}
                       </TableCell>
                       <TableCell className="text-center border text-xs p-2">
-                        {pegawai.warna_helm || "-"}
+                        {pegawai.warna_helm?.trim() || "-"}
                       </TableCell>
                       <TableCell className="text-center border text-xs p-2 font-mono">
-                        {pegawai.nip || "-"}
+                        {pegawai.nip?.trim() || "-"}
                       </TableCell>
                       <TableCell className="text-center border text-xs p-2">
                         <Button

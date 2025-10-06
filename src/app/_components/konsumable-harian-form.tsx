@@ -95,12 +95,12 @@ export default function KonsumableHarianForm() {
             <Input
               id="jumlah"
               type="number"
-              min="1"
-              value={formData.qty === 1 ? "" : formData.qty}
-              onChange={(e) =>
-                updateField("qty", parseInt(e.target.value) || 1)
-              }
-              placeholder="1"
+              value={formData.qty || ""}
+              onChange={(e) => {
+                const value = parseInt(e.target.value) || 0;
+                updateField("qty", value);
+              }}
+              placeholder="Masukkan jumlah"
               disabled={isSubmitting}
               required
             />

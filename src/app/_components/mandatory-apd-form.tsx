@@ -92,7 +92,7 @@ export default function MandatoryApdForm() {
 
           {/* Size Sepatu */}
           <div className="grid gap-2">
-            <Label htmlFor="size_sepatu">Size Sepatu (Opsional)</Label>
+            <Label htmlFor="size_sepatu">Size Sepatu</Label>
             <Input
               id="size_sepatu"
               type="number"
@@ -113,7 +113,7 @@ export default function MandatoryApdForm() {
 
           {/* Jenis Sepatu */}
           <div className="grid gap-2">
-            <Label htmlFor="jenis_sepatu">Jenis Sepatu (Opsional)</Label>
+            <Label htmlFor="jenis_sepatu">Jenis Sepatu</Label>
             <Input
               id="jenis_sepatu"
               placeholder="Contoh: Safety Boots, Sepatu Kulit"
@@ -125,7 +125,7 @@ export default function MandatoryApdForm() {
 
           {/* Warna Katelpack */}
           <div className="grid gap-2">
-            <Label htmlFor="warna_katelpack">Warna Katelpack (Opsional)</Label>
+            <Label htmlFor="warna_katelpack">Warna Katelpack</Label>
             <Input
               id="warna_katelpack"
               placeholder="Contoh: Biru, Merah, Hijau"
@@ -137,7 +137,7 @@ export default function MandatoryApdForm() {
 
           {/* Size Katelpack */}
           <div className="grid gap-2">
-            <Label htmlFor="size_katelpack">Size Katelpack (Opsional)</Label>
+            <Label htmlFor="size_katelpack">Size Katelpack</Label>
             <Input
               id="size_katelpack"
               placeholder="Contoh: S, M, L, XL"
@@ -149,7 +149,7 @@ export default function MandatoryApdForm() {
 
           {/* Warna Helm */}
           <div className="grid gap-2">
-            <Label htmlFor="warna_helm">Warna Helm (Opsional)</Label>
+            <Label htmlFor="warna_helm">Warna Helm</Label>
             <Input
               id="warna_helm"
               placeholder="Contoh: Putih, Kuning, Biru"
@@ -157,11 +157,12 @@ export default function MandatoryApdForm() {
               onChange={(e) => updateField("warna_helm", e.target.value)}
               disabled={isSubmitting}
             />
+            <p className="text-sm text-gray-900">Note: *) wajib diisi</p>
           </div>
         </div>
 
         {/* Form Actions */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-3">
           <Button
             type="button"
             variant="outline"

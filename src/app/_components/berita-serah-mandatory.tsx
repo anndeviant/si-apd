@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, UserPlus, Users } from "lucide-react";
+import PegawaiHelmTable from "./pegawai-helm-table";
+import PegawaiShoesTable from "./pegawai-shoes-table";
+import PegawaiKatelpackTable from "./pegawai-katelpack-table";
 
 interface BeritaSerahMandatoryProps {
   userId: string;
@@ -27,38 +30,38 @@ export default function BeritaSerahMandatory({}: BeritaSerahMandatoryProps) {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <Tabs defaultValue="form" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="form" className="flex items-center space-x-2">
+        <Tabs defaultValue="helm" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="helm" className="flex items-center space-x-2">
               <UserPlus className="w-4 h-4" />
-              <span>Form</span>
+              <span>Helm</span>
             </TabsTrigger>
-            <TabsTrigger value="data" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="safety-shoes"
+              className="flex items-center space-x-2"
+            >
               <Users className="w-4 h-4" />
-              <span>Lihat Data</span>
+              <span>Safety Shoes</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="katelpack"
+              className="flex items-center space-x-2"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Katelpack</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="form" className="space-y-4">
-            <div className="border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">
-                Form Serah Terima APD
-              </h3>
-              <div className="flex items-center justify-center h-32 text-gray-500">
-                <p>Konten form akan dikembangkan di sini</p>
-              </div>
-            </div>
+          <TabsContent value="helm" className="space-y-4">
+            <PegawaiHelmTable />
           </TabsContent>
 
-          <TabsContent value="data" className="space-y-4">
-            <div className="border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">
-                Lihat Data Serah Terima
-              </h3>
-              <div className="flex items-center justify-center h-32 text-gray-500">
-                <p>Konten data akan dikembangkan di sini</p>
-              </div>
-            </div>
+          <TabsContent value="safety-shoes" className="space-y-4">
+            <PegawaiShoesTable />
+          </TabsContent>
+
+          <TabsContent value="katelpack" className="space-y-4">
+            <PegawaiKatelpackTable />
           </TabsContent>
         </Tabs>
       </CardContent>

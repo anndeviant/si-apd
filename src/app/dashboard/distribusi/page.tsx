@@ -63,7 +63,7 @@ export default function DistribusiPage() {
                     Serah Terima
                   </TabsTrigger>
                   <TabsTrigger value="mandatory" className="w-full">
-                    Form Serah Terima
+                    Serah Terima APD
                   </TabsTrigger>
                 </TabsList>
               </div>{" "}

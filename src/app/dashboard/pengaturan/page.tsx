@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import Header from "@/components/header";
 import {
   Card,
@@ -13,10 +14,21 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { UserProfilePhoto } from "@/components/ui/user-profile-photo";
+import { useLogoPersonal } from "@/hooks/use-logo-personal";
 
 export default function PengaturanPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    logoFile,
+    isLoading: logoLoading,
+    uploadLogo,
+    deleteLogo,
+  } = useLogoPersonal(user);
 
   useEffect(() => {
     const getUser = async () => {
@@ -35,6 +47,40 @@ export default function PengaturanPage() {
 
   const handleBack = () => {
     router.push("/dashboard");
+  };
+
+  // Handle file input change
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("File harus berupa gambar");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 5MB");
+      return;
+    }
+
+    uploadLogo(file);
+  };
+
+  // Trigger file input
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Handle delete logo
+  const handleDeleteLogo = async () => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus logo ini?")) {
+      await deleteLogo();
+    }
   };
 
   if (!user) return null;
@@ -61,6 +107,76 @@ export default function PengaturanPage() {
 
         {/* Content Area */}
         <div className="space-y-6">
+          {/* Photo Profile Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Photo Profile</CardTitle>
+              <CardDescription>
+                Upload dan kelola photo profile Anda untuk dashboard
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center space-y-4">
+                {/* Profile Photo Preview - Circular */}
+                <div className="relative">
+                  {logoFile?.file_url ? (
+                    <UserProfilePhoto
+                      photoUrl={logoFile.file_url}
+                      size="xl"
+                      className="border-4 border-gray-300"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 rounded-full border-4 border-gray-300 overflow-hidden bg-gray-50 flex items-center justify-center">
+                      <div className="text-center">
+                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                        <p className="text-xs text-gray-500">No Photo</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col w-full max-w-xs space-y-2">
+                  <Button
+                    onClick={triggerFileInput}
+                    disabled={logoLoading}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {logoLoading
+                      ? "Mengupload..."
+                      : logoFile
+                      ? "Ganti Photo"
+                      : "Upload Photo"}
+                  </Button>
+
+                  {logoFile && (
+                    <Button
+                      onClick={handleDeleteLogo}
+                      disabled={logoLoading}
+                      variant="destructive"
+                      size="sm"
+                      className="w-full"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Hapus Photo
+                    </Button>
+                  )}
+                </div>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* User Info Section */}
           <Card>
             <CardHeader>

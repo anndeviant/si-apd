@@ -102,21 +102,21 @@ export interface ApdFiles {
     created_at: string;
     file_url: string;
     nama_file: string;
-    jenis_file: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd';
+    jenis_file: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal';
     user_id?: string;
 }
 
 export interface CreateApdFilesData {
     file_url: string;
     nama_file: string;
-    jenis_file: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd';
+    jenis_file: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal';
     user_id?: string;
 }
 
 export interface UpdateApdFilesData {
     file_url?: string;
     nama_file?: string;
-    jenis_file?: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd';
+    jenis_file?: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal';
     user_id?: string;
 }
 

@@ -7,7 +7,7 @@ import type { ApdFiles, CreateApdFilesData, UpdateApdFilesData } from "../types/
 
 // Get files by jenis_file and user_id
 export async function getFilesByJenis(
-    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd',
+    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal',
     userId?: string
 ): Promise<ApdFiles[]> {
     let query = supabase
@@ -31,7 +31,7 @@ export async function getFilesByJenis(
 
 // Get single file by jenis_file and user_id (latest)
 export async function getLatestFileByJenis(
-    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd',
+    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal',
     userId?: string
 ): Promise<ApdFiles | null> {
     let query = supabase
@@ -104,7 +104,8 @@ export async function verifyAndCleanupFile(fileRecord: ApdFiles): Promise<boolea
     try {
         // Extract file path from public URL to get storage path
         const urlParts = fileRecord.file_url.split('/');
-        const fileName = `docs/${urlParts[urlParts.length - 1]}`;
+        const folderPath = fileRecord.jenis_file === 'logo_personal' ? 'logos' : 'docs';
+        const fileName = `${folderPath}/${urlParts[urlParts.length - 1]}`;
 
         // Try to download file to verify it exists
         const { error } = await supabase.storage
@@ -128,14 +129,15 @@ export async function verifyAndCleanupFile(fileRecord: ApdFiles): Promise<boolea
 // Upload file to storage
 export async function uploadFileToStorage(
     file: File,
-    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd',
+    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal',
     userId: string
 ): Promise<{ fileName: string; publicUrl: string }> {
     const fileExtension = file.name.split('.').pop();
     const timestamp = Date.now();
 
     // Create unique filename based on jenis_file and userId
-    const fileName = `docs/${jenisFile}-${userId}-${timestamp}.${fileExtension}`;
+    const folderPath = jenisFile === 'logo_personal' ? 'logos' : 'docs';
+    const fileName = `${folderPath}/${jenisFile}-${userId}-${timestamp}.${fileExtension}`;
 
     const { error: uploadError } = await supabase.storage
         .from('apd-files')
@@ -179,7 +181,7 @@ export async function downloadFileFromStorage(fileName: string): Promise<Blob> {
 // Complete file upload process (upload + create record)
 export async function completeFileUpload(
     file: File,
-    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd',
+    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal',
     userId: string,
     existingFileId?: number | null
 ): Promise<{ fileRecord: ApdFiles; fileName: string }> {
@@ -219,7 +221,8 @@ export async function completeFileDeletion(
     try {
         // Extract file path from URL
         const urlParts = fileRecord.file_url.split('/');
-        const fileName = `docs/${urlParts[urlParts.length - 1]}`;
+        const folderPath = fileRecord.jenis_file === 'logo_personal' ? 'logos' : 'docs';
+        const fileName = `${folderPath}/${urlParts[urlParts.length - 1]}`;
 
         // Delete from storage first
         await deleteFileFromStorage(fileName);

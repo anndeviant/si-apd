@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import {
-  User as UserIcon,
   FileText,
   Package,
   BarChart3,
@@ -25,10 +24,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Header from "@/components/header";
+import { UserProfilePhoto } from "@/components/ui/user-profile-photo";
+import { useLogoPersonal } from "@/hooks/use-logo-personal";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+
+  // Get user's profile photo
+  const { logoFile } = useLogoPersonal(user);
 
   useEffect(() => {
     const getUser = async () => {
@@ -70,11 +74,13 @@ export default function DashboardPage() {
         {/* User Identity Card */}
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-4">
           <div className="flex items-center space-x-3">
-            {/* Person Icon */}
+            {/* Profile Photo */}
             <div className="flex-shrink-0">
-              <div className="w-15 h-15 bg-blue-50 rounded-full flex items-center justify-center border border-blue-100">
-                <UserIcon className="w-6 h-6 text-blue-600" />
-              </div>
+              <UserProfilePhoto
+                photoUrl={logoFile?.file_url}
+                size="lg"
+                className="border-2 border-blue-100"
+              />
             </div>
 
             {/* User Details */}

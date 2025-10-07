@@ -91,7 +91,7 @@ export default function PengajuanPage() {
                     className="flex items-center space-x-2"
                   >
                     <Users className="w-4 h-4" />
-                    <span>Lihat Data Mandatory</span>
+                    <span>Lihat Data</span>
                   </TabsTrigger>
                 </TabsList>
 

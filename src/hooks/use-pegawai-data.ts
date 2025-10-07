@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchPegawai, deletePegawai } from '@/lib/database/pegawai';
-import type { PegawaiWithRelations } from '@/lib/types/database';
+import { fetchPegawai, deletePegawai, updatePegawai } from '@/lib/database/pegawai';
+import type { PegawaiWithRelations, UpdatePegawaiData } from '@/lib/types/database';
 
 export function usePegawaiData() {
     const [pegawaiList, setPegawaiList] = useState<PegawaiWithRelations[]>([]);
@@ -94,6 +94,20 @@ export function usePegawaiData() {
         }
     };
 
+    // Handle update pegawai
+    const handleUpdatePegawai = async (id: number, updateData: UpdatePegawaiData): Promise<boolean> => {
+        try {
+            await updatePegawai(id, updateData);
+            // Reload data after successful update
+            await loadPegawaiData();
+            return true;
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Gagal mengupdate data pegawai';
+            setError(errorMessage);
+            return false;
+        }
+    };
+
     return {
         pegawaiList: filteredPegawai,
         groupedPegawai,
@@ -104,6 +118,7 @@ export function usePegawaiData() {
         error,
         setError,
         handleDeletePegawai,
+        handleUpdatePegawai,
         refreshData: loadPegawaiData,
     };
 }

@@ -41,7 +41,7 @@ export default function BeritaSerahMandatory({}: BeritaSerahMandatoryProps) {
               className="flex items-center space-x-2"
             >
               <Users className="w-4 h-4" />
-              <span>Safety Shoes</span>
+              <span>Shoes</span>
             </TabsTrigger>
             <TabsTrigger
               value="katelpack"

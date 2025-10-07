@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Edit, Loader2, Save, FileDown } from "lucide-react";
+import { Plus, Edit, Loader2, Save, FileDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +39,12 @@ export function PeminjamanApd() {
   const [editId, setEditId] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
+  // Delete dialog states
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteName, setDeleteName] = useState<string>("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Use custom hooks
   const {
     peminjamanItems,
@@ -46,6 +52,7 @@ export function PeminjamanApd() {
     isSubmitting,
     createPeminjaman,
     updatePeminjaman,
+    deletePeminjaman,
   } = useApdPeminjaman();
 
   const { formData, updateField, resetForm, setFormDataComplete } =
@@ -69,6 +76,31 @@ export function PeminjamanApd() {
     });
     setEditId(item.id);
     setShowEditModal(true);
+  };
+
+  const handleDeleteClick = (item: ApdPeminjaman) => {
+    setDeleteId(item.id);
+    setDeleteName(item.nama_peminjam);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      setIsDeleting(true);
+      const success = await deletePeminjaman(deleteId);
+
+      if (success) {
+        setShowDeleteDialog(false);
+        setDeleteId(null);
+        setDeleteName("");
+      }
+    } catch {
+      toast.error("Terjadi kesalahan saat menghapus data");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -199,7 +231,7 @@ export function PeminjamanApd() {
                 <TableHead className="min-w-[100px] text-center border text-xs p-2">
                   TGL KEMBALI
                 </TableHead>
-                <TableHead className="min-w-[60px] text-center border text-xs p-2">
+                <TableHead className="min-w-[80px] text-center border text-xs p-2">
                   AKSI
                 </TableHead>
               </TableRow>
@@ -226,14 +258,24 @@ export function PeminjamanApd() {
                     {formatDate(item.tanggal_kembali)}
                   </TableCell>
                   <TableCell className="text-center border text-xs p-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEditClick(item)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
+                    <div className="flex items-center justify-center space-x-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEditClick(item)}
+                        className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDeleteClick(item)}
+                        className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -434,6 +476,39 @@ export function PeminjamanApd() {
                 <>
                   <Save className="mr-2 h-3 w-3" />
                   Perbarui
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Hapus Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus data peminjaman oleh &quot;
+              {deleteName}&quot;? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  Menghapus...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-3 w-3" />
+                  Hapus
                 </>
               )}
             </AlertDialogAction>

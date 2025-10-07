@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { ArrowLeft, Upload, Trash2 } from "lucide-react";
+import { ArrowLeft, Upload, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/header";
 import {
@@ -15,6 +15,16 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { UserProfilePhoto } from "@/components/ui/user-profile-photo";
 import { useLogoPersonal } from "@/hooks/use-logo-personal";
 
@@ -22,6 +32,8 @@ export default function PengaturanPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     logoFile,
@@ -77,9 +89,20 @@ export default function PengaturanPage() {
   };
 
   // Handle delete logo
-  const handleDeleteLogo = async () => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus logo ini?")) {
+  const handleDeleteLogo = () => {
+    setShowDeleteDialog(true);
+  };
+
+  // Confirm delete logo
+  const confirmDeleteLogo = async () => {
+    try {
+      setIsDeleting(true);
       await deleteLogo();
+      setShowDeleteDialog(false);
+    } catch {
+      toast.error("Gagal menghapus photo");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -224,6 +247,39 @@ export default function PengaturanPage() {
           </Card>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Hapus Photo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus photo profile ini? Tindakan ini
+              tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteLogo}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  Menghapus...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-3 w-3" />
+                  Hapus
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -60,7 +60,7 @@ export default function DistribusiPage() {
               <div className="pr-6 pl-6 pb-0">
                 <TabsList className="w-full grid grid-cols-2 mb-6">
                   <TabsTrigger value="serah-terima" className="w-full">
-                    Serah Terima
+                    Berita Serah Terima
                   </TabsTrigger>
                   <TabsTrigger value="mandatory" className="w-full">
                     Serah Terima APD

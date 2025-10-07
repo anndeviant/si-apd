@@ -99,7 +99,7 @@ export default function MandatoryApdForm() {
               step="0.5"
               min="1"
               max="100"
-              placeholder="Contoh: 42"
+              placeholder="Masukkan size..."
               value={formData.size_sepatu || ""}
               onChange={(e) =>
                 updateField(
@@ -116,7 +116,7 @@ export default function MandatoryApdForm() {
             <Label htmlFor="jenis_sepatu">Jenis Sepatu</Label>
             <Input
               id="jenis_sepatu"
-              placeholder="Contoh: Safety Boots, Sepatu Kulit"
+              placeholder="Masukkan jenis..."
               value={formData.jenis_sepatu}
               onChange={(e) => updateField("jenis_sepatu", e.target.value)}
               disabled={isSubmitting}
@@ -128,7 +128,7 @@ export default function MandatoryApdForm() {
             <Label htmlFor="warna_katelpack">Warna Katelpack</Label>
             <Input
               id="warna_katelpack"
-              placeholder="Contoh: Biru, Merah, Hijau"
+              placeholder="Masukkan warna..."
               value={formData.warna_katelpack}
               onChange={(e) => updateField("warna_katelpack", e.target.value)}
               disabled={isSubmitting}
@@ -140,7 +140,7 @@ export default function MandatoryApdForm() {
             <Label htmlFor="size_katelpack">Size Katelpack</Label>
             <Input
               id="size_katelpack"
-              placeholder="Contoh: S, M, L, XL"
+              placeholder="Masukkan size..."
               value={formData.size_katelpack}
               onChange={(e) => updateField("size_katelpack", e.target.value)}
               disabled={isSubmitting}
@@ -152,7 +152,7 @@ export default function MandatoryApdForm() {
             <Label htmlFor="warna_helm">Warna Helm</Label>
             <Input
               id="warna_helm"
-              placeholder="Contoh: Putih, Kuning, Biru"
+              placeholder="Masukkan warna..."
               value={formData.warna_helm}
               onChange={(e) => updateField("warna_helm", e.target.value)}
               disabled={isSubmitting}

@@ -112,6 +112,118 @@ export default function TentangPage() {
               </p>
             </div>
           </div>
+
+          {/* Fitur Aplikasi */}
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Fitur Aplikasi SI-APD
+            </h3>
+            <div className="space-y-6">
+              {/* Pengajuan APD */}
+              <div>
+                <h4 className="font-medium text-blue-900 mb-2">
+                  1. PENGAJUAN APD
+                </h4>
+                <ul className="text-gray-600 text-sm space-y-1 ml-4">
+                  <li>
+                    • <strong>Pengajuan Project:</strong> Form pengajuan APD
+                    untuk project tertentu dengan detail kepala project,
+                    progress, dan estimasi biaya
+                  </li>
+                  <li>
+                    • <strong>Form Pengajuan KPI:</strong> Form pengajuan APD
+                    untuk Key Performance Indicator dengan tracking periode
+                  </li>
+                  <li>
+                    • <strong>Mandatory APD:</strong> Form pengelolaan data
+                    pegawai dan APD wajib sesuai standar keselamatan kerja
+                  </li>
+                </ul>
+              </div>
+
+              {/* Distribusi APD */}
+              <div>
+                <h4 className="font-medium text-blue-900 mb-2">
+                  2. DISTRIBUSI APD
+                </h4>
+                <ul className="text-gray-600 text-sm space-y-1 ml-4">
+                  <li>
+                    • <strong>Berita Acara Serah Terima APD:</strong> Pencatatan
+                    formal serah terima APD antara petugas dan penerima
+                  </li>
+                  <li>
+                    • <strong>Peminjaman APD:</strong> Sistem peminjaman APD
+                    dengan tracking peminjam, tanggal pinjam, dan status
+                    pengembalian
+                  </li>
+                  <li>
+                    • <strong>Konsumable Harian:</strong> Pencatatan distribusi
+                    APD konsumable yang digunakan harian per bengkel
+                  </li>
+                </ul>
+              </div>
+
+              {/* Rekapitulasi APD */}
+              <div>
+                <h4 className="font-medium text-blue-900 mb-2">
+                  3. REKAPITULASI APD
+                </h4>
+                <ul className="text-gray-600 text-sm space-y-1 ml-4">
+                  <li>
+                    • <strong>Stock Opname:</strong> Pencatatan dan monitoring
+                    stok APD real-time dengan fitur edit langsung
+                  </li>
+                  <li>
+                    • <strong>Neraca APD:</strong> Rekapitulasi batch APD per
+                    periode dengan kalkulasi stock awal, distribusi, dan sisa
+                  </li>
+                  <li>
+                    • <strong>Pengeluaran Pekerja Harian:</strong> Laporan
+                    penggunaan APD per pekerja dalam periode harian
+                  </li>
+                </ul>
+              </div>
+
+              {/* Pengaturan */}
+              <div>
+                <h4 className="font-medium text-blue-900 mb-2">
+                  4. PENGATURAN
+                </h4>
+                <ul className="text-gray-600 text-sm space-y-1 ml-4">
+                  <li>
+                    • <strong>Photo Profile:</strong> Upload dan kelola photo
+                    profile untuk dashboard personal
+                  </li>
+                  <li>
+                    • <strong>Informasi Akun:</strong> Tampilan detail informasi
+                    akun yang sedang login
+                  </li>
+                </ul>
+              </div>
+
+              {/* Sistem & Reporting */}
+              <div>
+                <h4 className="font-medium text-blue-900 mb-2">
+                  5. SISTEM & REPORTING
+                </h4>
+                <ul className="text-gray-600 text-sm space-y-1 ml-4">
+                  <li>
+                    • <strong>Authentication:</strong> Sistem login/logout
+                    dengan session management yang aman
+                  </li>
+                  <li>
+                    • <strong>Export Excel:</strong> Fitur export data ke format
+                    Excel untuk semua modul (stock opname, rekapitulasi,
+                    peminjaman, dll)
+                  </li>
+                  <li>
+                    • <strong>Data Tables:</strong> Tampilan data dalam tabel
+                    interaktif dengan fitur edit, delete, dan filter
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Footer */}

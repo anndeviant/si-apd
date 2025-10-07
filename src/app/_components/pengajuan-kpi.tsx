@@ -374,6 +374,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Masukkan nama project"
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
 
@@ -387,6 +388,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Masukkan nomor project"
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
               </div>
@@ -402,6 +404,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Masukkan kepala project"
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
 
@@ -411,6 +414,7 @@ export default function PengajuanKpi() {
                     value={formData.progres}
                     onValueChange={(value) => updateField("progres", value)}
                     disabled={isSubmitting}
+                    required
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Pilih progres" />
@@ -446,6 +450,7 @@ export default function PengajuanKpi() {
                   onChange={(e) => updateField("apd_nama", e.target.value)}
                   placeholder="Masukkan nama APD"
                   disabled={isSubmitting}
+                  required
                 />
               </div>
 
@@ -462,6 +467,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Jumlah..."
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
 
@@ -473,6 +479,7 @@ export default function PengajuanKpi() {
                     onChange={(e) => updateField("unit", e.target.value)}
                     placeholder="pcs"
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
 
@@ -488,6 +495,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Harga..."
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
               </div>
@@ -560,6 +568,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Masukkan nama project"
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
 
@@ -573,6 +582,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Masukkan nomor project"
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
               </div>
@@ -588,6 +598,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Masukkan kepala project"
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
 
@@ -597,6 +608,7 @@ export default function PengajuanKpi() {
                     value={formData.progres}
                     onValueChange={(value) => updateField("progres", value)}
                     disabled={isSubmitting}
+                    required
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Pilih progres" />
@@ -632,6 +644,7 @@ export default function PengajuanKpi() {
                   onChange={(e) => updateField("apd_nama", e.target.value)}
                   placeholder="Masukkan nama APD"
                   disabled={isSubmitting}
+                  required
                 />
               </div>
 
@@ -648,6 +661,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Jumlah..."
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
 
@@ -659,6 +673,7 @@ export default function PengajuanKpi() {
                     onChange={(e) => updateField("unit", e.target.value)}
                     placeholder="pcs"
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
 
@@ -674,6 +689,7 @@ export default function PengajuanKpi() {
                     }
                     placeholder="Harga..."
                     disabled={isSubmitting}
+                    required
                   />
                 </div>
               </div>

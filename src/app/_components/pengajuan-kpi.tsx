@@ -1,16 +1,15 @@
-"use client";
+﻿"use client";
 
-import { useState, useRef, useEffect } from "react";
-import { toast } from "sonner";
-import { supabase } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
+import { Plus, FileDown, Loader2, Edit, Trash2 } from "lucide-react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,463 +19,750 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Download, Upload, Trash2, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DatePickerWithInput } from "@/components/ui/date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+// import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { usePengajuanApd, usePengajuanForm } from "@/hooks/use-pengajuan-apd";
+import { exportPengajuanApdToExcel } from "@/lib/exports";
+import { createLocalDate } from "@/lib/database/pengajuan-apd";
+import type { PengajuanApd } from "@/lib/types/database";
 
-interface PengajuanKpiProps {
-  userId: string;
-}
+export default function PengajuanKpi() {
+  // Previously used userId for file upload, now using CRUD operations with database
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
-interface FileRecord {
-  id: number;
-  file_url: string;
-  nama_file: string;
-  created_at: string;
-  storage_path: string;
-}
+  // Delete dialog states
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteName, setDeleteName] = useState<string>("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
-export default function PengajuanKpi({ userId }: PengajuanKpiProps) {
-  const [uploadedFiles, setUploadedFiles] = useState<FileRecord[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [deletingFileId, setDeletingFileId] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Use custom hooks
+  const {
+    pengajuanItems,
+    isLoading,
+    isSubmitting,
+    createPengajuan,
+    updatePengajuan,
+    deletePengajuan,
+  } = usePengajuanApd();
 
-  // Load existing files on mount
-  useEffect(() => {
-    const loadExistingFiles = async () => {
-      try {
-        // Get all records with jenis_file 'pengajuan_apd' for this user
-        const { data, error } = await supabase
-          .from("apd_files")
-          .select("id, file_url, nama_file, created_at")
-          .eq("jenis_file", "pengajuan_apd")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false });
+  const {
+    formData,
+    updateField,
+    resetForm,
+    setFormDataComplete,
+    calculateTotal,
+  } = usePengajuanForm();
 
-        if (error) {
-          console.error("Error loading existing files:", error);
-          return;
-        }
-
-        if (data && data.length > 0) {
-          // Verify each file still exists in storage and cleanup if not
-          const validFiles: FileRecord[] = [];
-
-          for (const file of data) {
-            const urlParts = file.file_url.split("/");
-            const fileName = `docs/${urlParts[urlParts.length - 1]}`;
-
-            const { error: storageCheckError } = await supabase.storage
-              .from("apd-files")
-              .download(fileName);
-
-            if (storageCheckError) {
-              // File doesn't exist in storage, clean up database
-              console.log(
-                `File not found in storage, deleting database record for ID: ${file.id}`
-              );
-              await supabase.from("apd_files").delete().eq("id", file.id);
-            } else {
-              // File exists, add to valid files
-              validFiles.push({
-                id: file.id,
-                file_url: file.file_url,
-                nama_file: file.nama_file,
-                created_at: file.created_at,
-                storage_path: fileName,
-              });
-            }
-          }
-
-          setUploadedFiles(validFiles);
-        }
-      } catch (error) {
-        console.error("Error in loadExistingFiles:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadExistingFiles();
-  }, [userId]);
-
-  // Download specific file
-  const handleDownloadFile = async (file: FileRecord) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from("apd-files")
-        .download(file.storage_path);
-
-      if (error) {
-        console.error("Download error:", error);
-        toast.error("Gagal mendownload file. Silakan coba lagi.");
-        return;
-      }
-
-      // Create download link with original filename
-      const url = URL.createObjectURL(data);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = file.nama_file;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading file:", error);
-      toast.error("Terjadi kesalahan saat mendownload file.");
-    }
+  const handleAddClick = () => {
+    resetForm();
+    setEditId(null);
+    setShowAddModal(true);
   };
 
-  // Handle new file upload
-  const handleFileUpload = async (file: File) => {
-    if (!file) return;
+  const handleEditClick = (item: PengajuanApd) => {
+    setFormDataComplete({
+      nama_project: item.nama_project,
+      nomor_project: item.nomor_project,
+      kepala_project: item.kepala_project,
+      progres: item.progres,
+      keterangan: item.keterangan || "",
+      tanggal: createLocalDate(item.tanggal),
+      apd_nama: item.apd_nama,
+      jumlah: item.jumlah,
+      unit: item.unit,
+      harga: item.harga,
+    });
+    setEditId(item.id);
+    setShowEditModal(true);
+  };
 
-    setIsUploading(true);
+  const handleDeleteClick = (item: PengajuanApd) => {
+    setDeleteId(item.id);
+    setDeleteName(item.nama_project);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+
     try {
-      const fileName = `docs/kpi-${userId}-${Date.now()}.${file.name
-        .split(".")
-        .pop()}`;
+      setIsDeleting(true);
+      const success = await deletePengajuan(deleteId);
 
-      // Upload new file to storage
-      const { error: uploadError } = await supabase.storage
-        .from("apd-files")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        toast.error("Gagal mengupload file. Silakan coba lagi.");
-        return;
+      if (success) {
+        setShowDeleteDialog(false);
+        setDeleteId(null);
+        setDeleteName("");
       }
-
-      // Get public URL for the file
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("apd-files").getPublicUrl(fileName);
-
-      // Insert new record
-      const { data: insertData, error: insertError } = await supabase
-        .from("apd_files")
-        .insert({
-          file_url: publicUrl,
-          nama_file: file.name,
-          jenis_file: "pengajuan_apd",
-          user_id: userId,
-        })
-        .select("id, created_at")
-        .single();
-
-      if (insertError) {
-        console.error("Database insert error:", insertError);
-        toast.error("File berhasil diupload tapi gagal simpan ke database.");
-        return;
-      }
-
-      // Add new file to the list
-      const newFileRecord: FileRecord = {
-        id: insertData.id,
-        file_url: publicUrl,
-        nama_file: file.name,
-        created_at: insertData.created_at,
-        storage_path: fileName,
-      };
-
-      setUploadedFiles((prev) => [newFileRecord, ...prev]);
-      toast.success("File berhasil diupload!");
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      toast.error("Terjadi kesalahan saat mengupload file.");
+    } catch {
+      toast.error("Terjadi kesalahan saat menghapus data");
     } finally {
-      setIsUploading(false);
+      setIsDeleting(false);
     }
   };
 
-  // Handle specific file delete
-  const handleFileDelete = async (file: FileRecord) => {
-    setDeletingFileId(file.id);
+  const handleSubmit = async () => {
+    let success = false;
+
+    if (editId) {
+      success = await updatePengajuan(editId, formData);
+      if (success) {
+        setShowEditModal(false);
+      }
+    } else {
+      success = await createPengajuan(formData);
+      if (success) {
+        setShowAddModal(false);
+      }
+    }
+
+    if (success) {
+      resetForm();
+      setEditId(null);
+    }
+  };
+
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("id-ID");
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const handleExportExcel = async () => {
     try {
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from("apd-files")
-        .remove([file.storage_path]);
+      setIsExporting(true);
 
-      if (storageError) {
-        console.error("Storage delete error:", storageError);
-        toast.error("Gagal menghapus file dari storage. Silakan coba lagi.");
+      if (pengajuanItems.length === 0) {
+        toast.error("Tidak ada data untuk diexport");
         return;
       }
 
-      // Delete record from database
-      const { error: dbError } = await supabase
-        .from("apd_files")
-        .delete()
-        .eq("id", file.id);
+      // Transform data sesuai interface yang dibutuhkan
+      const exportData = pengajuanItems.map((item) => ({
+        id: item.id,
+        nama_project: item.nama_project,
+        nomor_project: item.nomor_project,
+        kepala_project: item.kepala_project,
+        progres: item.progres,
+        keterangan: item.keterangan,
+        tanggal: item.tanggal,
+        apd_nama: item.apd_nama,
+        jumlah: item.jumlah,
+        unit: item.unit,
+        harga: item.harga,
+        total: item.total,
+      }));
 
-      if (dbError) {
-        console.error("Database delete error:", dbError);
-        toast.error("File dihapus dari storage tapi gagal update database.");
-        return;
-      }
-
-      // Remove file from the list
-      setUploadedFiles((prev) => prev.filter((f) => f.id !== file.id));
-      toast.success("File berhasil dihapus!");
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      toast.error("Terjadi kesalahan saat menghapus file.");
+      exportPengajuanApdToExcel(exportData);
+      toast.success("Data berhasil diexport ke Excel");
+    } catch (err) {
+      toast.error("Gagal export data ke Excel");
+      console.error(err);
     } finally {
-      setDeletingFileId(null);
+      setIsExporting(false);
     }
   };
 
-  // Handle file input change
-  const handleFileInputChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validate file type (Excel, PDF, Word files)
-      const allowedTypes = [
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-        "application/vnd.ms-excel", // .xls
-        "application/pdf", // .pdf
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-        "application/msword", // .doc
-      ];
-
-      if (!allowedTypes.includes(file.type)) {
-        toast.error(
-          "Hanya file Excel (.xlsx, .xls), PDF (.pdf), dan Word (.docx, .doc) yang diperbolehkan."
-        );
-        return;
-      }
-
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("Ukuran file maksimal 10MB.");
-        return;
-      }
-
-      handleFileUpload(file);
-    }
-  };
-
-  // Trigger file input
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
+  const progresOptions = [
+    "Draft",
+    "Review",
+    "Approved",
+    "Rejected",
+    "Complete",
+  ];
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <FileText className="w-5 h-5" />
-          <span>Template Form Pengajuan</span>
-        </CardTitle>
-        <CardDescription>
-          Upload dokumen pengajuan Key Performance Indicator (KPI)
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-4">
+      {/* Header with Add Button */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Pengajuan APD
+          </h3>
+          <p className="text-sm text-gray-600">
+            Kelola data pengajuan pembelian APD untuk project
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+          <Button
+            onClick={handleExportExcel}
+            disabled={isLoading || isExporting || pengajuanItems.length === 0}
+            className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 w-full sm:w-fit"
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <FileDown className="h-4 w-4" />
+                Export Excel
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={handleAddClick}
+            className="flex items-center gap-2 w-full sm:w-fit"
+          >
+            <Plus className="h-4 w-4" />
+            Tambah Pengajuan
+          </Button>
+        </div>
+      </div>
 
-      <CardContent className="space-y-6">
-        {/* Upload Section */}
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center p-4">
-              <span className="text-sm text-gray-600">Memuat data...</span>
-            </div>
-          ) : (
-            <>
-              {/* Files List */}
-              {uploadedFiles.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-gray-700">
-                    Files Uploaded ({uploadedFiles.length})
-                  </h4>
-                  {uploadedFiles.map((file) => {
-                    const fileDate = new Date(
-                      file.created_at
-                    ).toLocaleDateString("id-ID", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    });
-
-                    return (
-                      <div
-                        key={file.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg"
+      {/* Data Table */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8 text-sm text-gray-500">
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          Loading data...
+        </div>
+      ) : pengajuanItems.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <p className="text-sm">Belum ada data pengajuan</p>
+        </div>
+      ) : (
+        <div className="w-full overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-[40px] text-center border text-xs p-2">
+                  NO
+                </TableHead>
+                <TableHead className="min-w-[150px] text-center border text-xs p-2">
+                  NAMA PROJECT
+                </TableHead>
+                <TableHead className="min-w-[100px] text-center border text-xs p-2">
+                  NOMOR PROJECT
+                </TableHead>
+                <TableHead className="min-w-[150px] text-center border text-xs p-2">
+                  KEPALA PROJECT
+                </TableHead>
+                <TableHead className="min-w-[80px] text-center border text-xs p-2">
+                  PROGRES
+                </TableHead>
+                <TableHead className="min-w-[100px] text-center border text-xs p-2">
+                  TANGGAL
+                </TableHead>
+                <TableHead className="min-w-[150px] text-center border text-xs p-2">
+                  NAMA APD
+                </TableHead>
+                <TableHead className="min-w-[60px] text-center border text-xs p-2">
+                  QTY
+                </TableHead>
+                <TableHead className="min-w-[80px] text-center border text-xs p-2">
+                  UNIT
+                </TableHead>
+                <TableHead className="min-w-[100px] text-center border text-xs p-2">
+                  HARGA
+                </TableHead>
+                <TableHead className="min-w-[100px] text-center border text-xs p-2">
+                  TOTAL
+                </TableHead>
+                <TableHead className="min-w-[80px] text-center border text-xs p-2">
+                  AKSI
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pengajuanItems.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableCell className="border text-center text-xs p-2">
+                    {index + 1}
+                  </TableCell>
+                  <TableCell className="border text-xs p-2">
+                    {item.nama_project}
+                  </TableCell>
+                  <TableCell className="border text-center text-xs p-2">
+                    {item.nomor_project}
+                  </TableCell>
+                  <TableCell className="border text-xs p-2">
+                    {item.kepala_project}
+                  </TableCell>
+                  <TableCell className="border text-center text-xs p-2">
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        item.progres === "Draft"
+                          ? "bg-gray-100 text-gray-600"
+                          : item.progres === "Review"
+                          ? "bg-yellow-100 text-yellow-600"
+                          : item.progres === "Approved"
+                          ? "bg-green-100 text-green-600"
+                          : item.progres === "Rejected"
+                          ? "bg-red-100 text-red-600"
+                          : item.progres === "Complete"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {item.progres}
+                    </span>
+                  </TableCell>
+                  <TableCell className="border text-center text-xs p-2">
+                    {formatDate(item.tanggal)}
+                  </TableCell>
+                  <TableCell className="border text-xs p-2">
+                    {item.apd_nama}
+                  </TableCell>
+                  <TableCell className="border text-center text-xs p-2">
+                    {item.jumlah}
+                  </TableCell>
+                  <TableCell className="border text-center text-xs p-2">
+                    {item.unit}
+                  </TableCell>
+                  <TableCell className="border text-right text-xs p-2">
+                    {formatCurrency(item.harga)}
+                  </TableCell>
+                  <TableCell className="border text-right text-xs p-2 font-medium">
+                    {formatCurrency(item.total)}
+                  </TableCell>
+                  <TableCell className="border text-center text-xs p-2">
+                    <div className="flex items-center justify-center gap-1">
+                      <Button
+                        onClick={() => handleEditClick(item)}
+                        variant="outline"
+                        size="sm"
+                        className="h-7 w-7 p-0"
                       >
-                        <div className="flex items-center space-x-2 min-w-0 flex-1">
-                          <FileText className="w-4 h-4 flex-shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              File Pengajuan KPI - {fileDate}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {file.nama_file}
-                            </p>
-                          </div>
-                        </div>
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteClick(item)}
+                        variant="destructive"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
-                        {/* Desktop: side-by-side buttons, Mobile: 2-column grid */}
-                        <div className="flex items-center gap-2 flex-shrink-0 sm:flex-row">
-                          <div className="hidden sm:flex items-center gap-2">
-                            {/* Desktop Layout */}
-                            <Button
-                              onClick={() => handleDownloadFile(file)}
-                              variant="outline"
-                              size="sm"
-                              className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                            >
-                              <Download className="w-4 h-4" />
-                            </Button>
+          {/* Footer Info */}
+          <div className="mt-3 text-xs text-gray-500 text-center">
+            Total: {pengajuanItems.length} record
+          </div>
+        </div>
+      )}
 
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  disabled={deletingFileId === file.id}
-                                >
-                                  {deletingFileId === file.id ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                  ) : (
-                                    <Trash2 className="w-4 h-4" />
-                                  )}
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Konfirmasi Hapus File
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Apakah Anda yakin ingin menghapus file
-                                    &quot;
-                                    {file.nama_file}&quot;? Tindakan ini tidak
-                                    dapat dibatalkan.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleFileDelete(file)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Hapus File
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
+      {/* Add Modal */}
+      <AlertDialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <AlertDialogContent className="max-w-2xl w-[calc(100vw-2rem)]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tambah Data Pengajuan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tambahkan data pengajuan APD baru
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-                          {/* Mobile Layout: 2-column grid */}
-                          <div className="grid grid-cols-2 gap-2 w-full sm:hidden">
-                            <Button
-                              onClick={() => handleDownloadFile(file)}
-                              variant="outline"
-                              size="sm"
-                              className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 flex items-center justify-center"
-                            >
-                              <Download className="w-4 h-4 mr-1" />
-                              <span className="text-xs">Download</span>
-                            </Button>
+          <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="nama_project">Nama Project *</Label>
+                <Input
+                  id="nama_project"
+                  value={formData.nama_project}
+                  onChange={(e) => updateField("nama_project", e.target.value)}
+                  placeholder="Masukkan nama project"
+                  disabled={isSubmitting}
+                />
+              </div>
 
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  disabled={deletingFileId === file.id}
-                                  className="flex items-center justify-center"
-                                >
-                                  {deletingFileId === file.id ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                  ) : (
-                                    <>
-                                      <Trash2 className="w-4 h-4 mr-1" />
-                                      <span className="text-xs">Hapus</span>
-                                    </>
-                                  )}
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Konfirmasi Hapus File
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Apakah Anda yakin ingin menghapus file
-                                    &quot;
-                                    {file.nama_file}&quot;? Tindakan ini tidak
-                                    dapat dibatalkan.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleFileDelete(file)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Hapus File
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="nomor_project">Nomor Project *</Label>
+                <Input
+                  id="nomor_project"
+                  value={formData.nomor_project}
+                  onChange={(e) => updateField("nomor_project", e.target.value)}
+                  placeholder="Masukkan nomor project"
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="kepala_project">Kepala Project *</Label>
+                <Input
+                  id="kepala_project"
+                  value={formData.kepala_project}
+                  onChange={(e) =>
+                    updateField("kepala_project", e.target.value)
+                  }
+                  placeholder="Masukkan kepala project"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="progres">Progres *</Label>
+                <Select
+                  value={formData.progres}
+                  onValueChange={(value) => updateField("progres", value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih progres" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {progresOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="tanggal">Tanggal *</Label>
+              <DatePickerWithInput
+                value={formData.tanggal}
+                onChange={(date) => updateField("tanggal", date || new Date())}
+                placeholder="Pilih tanggal"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="apd_nama">Nama APD *</Label>
+              <Input
+                id="apd_nama"
+                value={formData.apd_nama}
+                onChange={(e) => updateField("apd_nama", e.target.value)}
+                placeholder="Masukkan nama APD"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="jumlah">Jumlah *</Label>
+                <Input
+                  id="jumlah"
+                  type="number"
+                  min="1"
+                  value={formData.jumlah}
+                  onChange={(e) =>
+                    updateField("jumlah", parseInt(e.target.value) || 1)
+                  }
+                  placeholder="Jumlah"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="unit">Unit *</Label>
+                <Input
+                  id="unit"
+                  value={formData.unit}
+                  onChange={(e) => updateField("unit", e.target.value)}
+                  placeholder="pcs"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="harga">Harga *</Label>
+                <Input
+                  id="harga"
+                  type="number"
+                  min="0"
+                  value={formData.harga}
+                  onChange={(e) =>
+                    updateField("harga", parseFloat(e.target.value) || 0)
+                  }
+                  placeholder="0"
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Total</Label>
+              <div className="text-lg font-semibold text-green-600">
+                {formatCurrency(calculateTotal())}
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="keterangan">Keterangan</Label>
+              <Input
+                id="keterangan"
+                value={formData.keterangan}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  updateField("keterangan", e.target.value)
+                }
+                placeholder="Masukkan keterangan (opsional)"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          <AlertDialogFooter className="grid grid-cols-2 gap-3">
+            <AlertDialogCancel disabled={isSubmitting} className="w-full">
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="w-full"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Data
+                </>
               )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-              {/* Add New File Button */}
-              <Button
-                onClick={triggerFileInput}
-                disabled={isUploading}
-                variant="outline"
-                className="w-full bg-black text-white border-black hover:bg-gray-800"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                <span>
-                  {isUploading ? "Mengupload..." : "Tambah File Pengajuan KPI"}
-                </span>
-              </Button>
-            </>
-          )}
+      {/* Edit Modal */}
+      <AlertDialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <AlertDialogContent className="max-w-2xl w-[calc(100vw-2rem)]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Edit Data Pengajuan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Perbarui data pengajuan APD
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.pdf,.docx,.doc"
-            onChange={handleFileInputChange}
-            className="hidden"
-          />
-        </div>
+          <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit_nama_project">Nama Project *</Label>
+                <Input
+                  id="edit_nama_project"
+                  value={formData.nama_project}
+                  onChange={(e) => updateField("nama_project", e.target.value)}
+                  placeholder="Masukkan nama project"
+                  disabled={isSubmitting}
+                />
+              </div>
 
-        {/* Information Section */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h4 className="font-medium text-gray-900 mb-2">Informasi Penting:</h4>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>
-              • File harus berformat Excel (.xlsx, .xls), PDF (.pdf), atau Word
-              (.docx, .doc)
-            </li>
-            <li>• Ukuran file maksimal 10MB</li>
-            <li>
-              • File disimpan secara aman dan dapat diakses oleh tim manajemen
-              untuk evaluasi kinerja
-            </li>
-          </ul>
-        </div>
-      </CardContent>
-    </Card>
+              <div className="grid gap-2">
+                <Label htmlFor="edit_nomor_project">Nomor Project *</Label>
+                <Input
+                  id="edit_nomor_project"
+                  value={formData.nomor_project}
+                  onChange={(e) => updateField("nomor_project", e.target.value)}
+                  placeholder="Masukkan nomor project"
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit_kepala_project">Kepala Project *</Label>
+                <Input
+                  id="edit_kepala_project"
+                  value={formData.kepala_project}
+                  onChange={(e) =>
+                    updateField("kepala_project", e.target.value)
+                  }
+                  placeholder="Masukkan kepala project"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit_progres">Progres *</Label>
+                <Select
+                  value={formData.progres}
+                  onValueChange={(value) => updateField("progres", value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih progres" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {progresOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="edit_tanggal">Tanggal *</Label>
+              <DatePickerWithInput
+                value={formData.tanggal}
+                onChange={(date) => updateField("tanggal", date || new Date())}
+                placeholder="Pilih tanggal"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="edit_apd_nama">Nama APD *</Label>
+              <Input
+                id="edit_apd_nama"
+                value={formData.apd_nama}
+                onChange={(e) => updateField("apd_nama", e.target.value)}
+                placeholder="Masukkan nama APD"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit_jumlah">Jumlah *</Label>
+                <Input
+                  id="edit_jumlah"
+                  type="number"
+                  min="1"
+                  value={formData.jumlah}
+                  onChange={(e) =>
+                    updateField("jumlah", parseInt(e.target.value) || 1)
+                  }
+                  placeholder="Jumlah"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit_unit">Unit *</Label>
+                <Input
+                  id="edit_unit"
+                  value={formData.unit}
+                  onChange={(e) => updateField("unit", e.target.value)}
+                  placeholder="pcs"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit_harga">Harga *</Label>
+                <Input
+                  id="edit_harga"
+                  type="number"
+                  min="0"
+                  value={formData.harga}
+                  onChange={(e) =>
+                    updateField("harga", parseFloat(e.target.value) || 0)
+                  }
+                  placeholder="0"
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Total</Label>
+              <div className="text-lg font-semibold text-green-600">
+                {formatCurrency(calculateTotal())}
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="edit_keterangan">Keterangan</Label>
+              <Input
+                id="edit_keterangan"
+                value={formData.keterangan}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  updateField("keterangan", e.target.value)
+                }
+                placeholder="Masukkan keterangan (opsional)"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          <AlertDialogFooter className="grid grid-cols-2 gap-3">
+            <AlertDialogCancel disabled={isSubmitting} className="w-full">
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="w-full"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                <>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Update Data
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Hapus Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus pengajuan &quot;{deleteName}
+              &quot;? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Menghapus...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Hapus Data
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

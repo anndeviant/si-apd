@@ -147,6 +147,51 @@ export interface UpdateApdPeminjamanData {
     tanggal_kembali?: string;
 }
 
+// Pengajuan APD types
+export interface PengajuanApd {
+    id: number;
+    created_at: string;
+    nama_project: string;
+    nomor_project: string;
+    kepala_project: string;
+    progres: string;
+    keterangan?: string;
+    tanggal: string;
+    apd_nama: string;
+    jumlah: number;
+    unit: string;
+    harga: number;
+    total: number;
+}
+
+export interface CreatePengajuanApdData {
+    nama_project: string;
+    nomor_project: string;
+    kepala_project: string;
+    progres?: string;
+    keterangan?: string;
+    tanggal: string;
+    apd_nama: string;
+    jumlah: number;
+    unit?: string;
+    harga: number;
+    // total is excluded - calculated automatically by database
+}
+
+export interface UpdatePengajuanApdData {
+    nama_project?: string;
+    nomor_project?: string;
+    kepala_project?: string;
+    progres?: string;
+    keterangan?: string;
+    tanggal?: string;
+    apd_nama?: string;
+    jumlah?: number;
+    unit?: string;
+    harga?: number;
+    // total is excluded - calculated automatically by database
+}
+
 // Divisi types
 export interface Divisi {
     id: number;

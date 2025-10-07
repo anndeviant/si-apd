@@ -4,6 +4,7 @@ export { exportBatchRekapToExcel } from './batch-rekap-export';
 export { exportPengeluaranPekerjaToExcel } from './pengeluaran-pekerja-export';
 export { exportStockOpnameToExcel } from './stock-opname-export';
 export { exportPeminjamanApdToExcel } from './peminjaman-apd-export';
+export { exportPengajuanApdToExcel } from './pengajuan-apd-export';
 export { exportPegawaiHelmToExcel } from './pegawai-helm-export';
 export { exportPegawaiKatelpackToExcel } from './pegawai-katelpack-export';
 export { exportPegawaiShoesToExcel } from './pegawai-shoes-export';

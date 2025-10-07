@@ -195,7 +195,7 @@ export default function PengajuanKpi() {
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Pengajuan APD
+              List Pengajuan APD Project
             </h3>
             <p className="text-sm text-gray-600">
               Kelola data pengajuan pembelian APD untuk project

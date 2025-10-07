@@ -15,6 +15,7 @@ import {
 import Header from "@/components/header";
 import PengajuanProject from "@/app/_components/pengajuan-project";
 import PengajuanKpi from "@/app/_components/pengajuan-kpi";
+import PengajuanKonsumable from "@/app/_components/pengajuan-konsumable";
 import { DivisiProvider } from "@/contexts/divisi-context";
 import { PosisiProvider } from "@/contexts/posisi-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -62,6 +63,8 @@ export default function PengajuanPage() {
         return <PengajuanProject userId={user.id} />;
       case "kpi":
         return <PengajuanKpi />;
+      case "konsumable":
+        return <PengajuanKonsumable userId={user.id} />;
       case "mandatory":
         return (
           <Card className="w-full">
@@ -152,8 +155,15 @@ export default function PengajuanPage() {
               <SelectValue placeholder="Pilih jenis pengajuan" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="project">Pengajuan Project</SelectItem>
-              <SelectItem value="kpi">[KPI] Form Pengajuan</SelectItem>
+              <SelectItem value="project">
+                Form Material Request (MR)
+              </SelectItem>
+              <SelectItem value="kpi">
+                [KPI] List Pengajuan APD Project
+              </SelectItem>
+              <SelectItem value="konsumable">
+                [KPI] Form Pengajuan Konsumable
+              </SelectItem>
               <SelectItem value="mandatory">[KPI] Mandatory APD</SelectItem>
             </SelectContent>
           </Select>

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Download, Upload, Trash2, FileText } from "lucide-react";
 
-interface PengajuanProjectProps {
+interface PengajuanKonsumableProps {
   userId: string;
 }
 
@@ -36,7 +36,9 @@ interface FileRecord {
   storage_path: string;
 }
 
-export default function PengajuanProject({ userId }: PengajuanProjectProps) {
+export default function PengajuanKonsumable({
+  userId,
+}: PengajuanKonsumableProps) {
   const [uploadedFiles, setUploadedFiles] = useState<FileRecord[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [deletingFileId, setDeletingFileId] = useState<number | null>(null);
@@ -47,11 +49,11 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
   useEffect(() => {
     const loadExistingFiles = async () => {
       try {
-        // Get all records with jenis_file 'template_mr' for this user
+        // Get all records with jenis_file 'kpi_konsumable' for this user
         const { data, error } = await supabase
           .from("apd_files")
           .select("id, file_url, nama_file, created_at")
-          .eq("jenis_file", "template_mr")
+          .eq("jenis_file", "kpi_konsumable")
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
 
@@ -136,7 +138,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
 
     setIsUploading(true);
     try {
-      const fileName = `docs/mr-${userId}-${Date.now()}.${file.name
+      const fileName = `docs/kpi-konsumable-${userId}-${Date.now()}.${file.name
         .split(".")
         .pop()}`;
 
@@ -162,7 +164,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
         .insert({
           file_url: publicUrl,
           nama_file: file.name,
-          jenis_file: "template_mr",
+          jenis_file: "kpi_konsumable",
           user_id: userId,
         })
         .select("id, created_at")
@@ -273,11 +275,11 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <FileText className="w-5 h-5" />
-          <span>Form Material Request (MR) Project</span>
+          <span>[KPI] Form Pengajuan Konsumable</span>
         </CardTitle>
         <CardDescription>
-          Pengajuan kebutuhan material untuk project dengan menggunakan template
-          standar Material Request.
+          Upload dokumentasi KPI Form Pengajuan Konsumable untuk kebutuhan
+          material dan inventori peralatan kerja.
         </CardDescription>
       </CardHeader>
 
@@ -316,7 +318,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
                           <FileText className="w-4 h-4 flex-shrink-0" />
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-gray-900 truncate">
-                              File Template MR - {fileDate}
+                              KPI Form Pengajuan Konsumable - {fileDate}
                             </p>
                             <p className="text-xs text-gray-500 truncate">
                               {file.nama_file}
@@ -446,7 +448,7 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
               >
                 <Upload className="w-4 h-4 mr-2" />
                 <span>
-                  {isUploading ? "Mengupload..." : "Tambah File Template MR"}
+                  {isUploading ? "Mengupload..." : "Tambah File KPI Konsumable"}
                 </span>
               </Button>
             </>
@@ -473,6 +475,10 @@ export default function PengajuanProject({ userId }: PengajuanProjectProps) {
             <li>• Ukuran file maksimal 10MB</li>
             <li>
               • File disimpan secara aman dan dapat diakses oleh tim terkait
+            </li>
+            <li>
+              • Dokumentasi KPI digunakan untuk evaluasi dan pelaporan
+              konsumable
             </li>
           </ul>
         </div>

@@ -8,6 +8,7 @@ export { exportPengajuanApdToExcel } from './pengajuan-apd-export';
 export { exportPegawaiHelmToExcel } from './pegawai-helm-export';
 export { exportPegawaiKatelpackToExcel } from './pegawai-katelpack-export';
 export { exportPegawaiShoesToExcel } from './pegawai-shoes-export';
+export { exportPengajuanKonsumableToExcel, exportPengajuanKonsumableSummaryToExcel } from './pengajuan-konsumable-export';
 
 // Export types for convenience
 export type { PegawaiWithRelations, ApdMonthlyWithRelations, PengeluaranPekerjaData } from '../types/database';

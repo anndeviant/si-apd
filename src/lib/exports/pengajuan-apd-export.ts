@@ -43,36 +43,34 @@ export function exportPengajuanApdToExcel(data: PengajuanApdExportData[]): void 
             }).format(amount);
         };
 
-        // Siapkan data untuk worksheet dengan header yang diminta
+        // Siapkan data untuk worksheet dengan header yang diminta sesuai urutan tabel UI
         const worksheetData = [
             // Header
             [
                 "NO",
                 "NAMA PROJECT",
+                "TANGGAL",
                 "NOMOR PROJECT",
                 "KEPALA PROJECT",
-                "PROGRES",
-                "TANGGAL",
                 "NAMA APD",
-                "JUMLAH",
-                "UNIT",
+                "QTY",
                 "HARGA",
                 "TOTAL",
+                "PROGRES",
                 "KETERANGAN"
             ],
             // Data rows
             ...data.map((item, index) => [
                 index + 1, // NO
                 item.nama_project, // NAMA PROJECT
+                formatDate(item.tanggal), // TANGGAL
                 item.nomor_project, // NOMOR PROJECT
                 item.kepala_project, // KEPALA PROJECT
-                item.progres, // PROGRES
-                formatDate(item.tanggal), // TANGGAL
                 item.apd_nama, // NAMA APD
-                item.jumlah, // JUMLAH
-                item.unit, // UNIT
+                `${item.jumlah} ${item.unit}`, // QTY (gabungan jumlah dan unit)
                 formatCurrency(item.harga), // HARGA
                 formatCurrency(item.total), // TOTAL
+                item.progres, // PROGRES
                 item.keterangan || "-", // KETERANGAN
             ]),
         ];
@@ -80,19 +78,18 @@ export function exportPengajuanApdToExcel(data: PengajuanApdExportData[]): void 
         // Buat worksheet
         const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
 
-        // Set column widths untuk readability
+        // Set column widths untuk readability sesuai urutan baru
         worksheet["!cols"] = [
             { width: 5 }, // NO
-            { width: 20 }, // NAMA PROJECT
+            { width: 20 }, // NAMA PROJECT  
+            { width: 12 }, // TANGGAL
             { width: 15 }, // NOMOR PROJECT
             { width: 20 }, // KEPALA PROJECT
-            { width: 12 }, // PROGRES
-            { width: 12 }, // TANGGAL
             { width: 20 }, // NAMA APD
-            { width: 10 }, // JUMLAH
-            { width: 8 }, // UNIT
+            { width: 15 }, // QTY (jumlah + unit)
             { width: 15 }, // HARGA
             { width: 15 }, // TOTAL
+            { width: 12 }, // PROGRES
             { width: 25 }, // KETERANGAN
         ];
 
@@ -104,14 +101,14 @@ export function exportPengajuanApdToExcel(data: PengajuanApdExportData[]): void 
         };
 
         // Apply header styling
-        const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1:L1");
+        const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1:K1");
         for (let col = range.s.c; col <= range.e.c; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
             if (!worksheet[cellAddress]) continue;
             worksheet[cellAddress].s = headerStyle;
         }
 
-        // Apply styling untuk data rows
+        // Apply styling untuk data rows sesuai urutan baru
         for (let row = 1; row <= data.length; row++) {
             // NO column (A) - center align
             const noCellAddress = XLSX.utils.encode_cell({ r: row, c: 0 });
@@ -129,80 +126,72 @@ export function exportPengajuanApdToExcel(data: PengajuanApdExportData[]): void 
                 };
             }
 
-            // NOMOR PROJECT column (C) - center align
-            const nomorProjectCellAddress = XLSX.utils.encode_cell({ r: row, c: 2 });
-            if (worksheet[nomorProjectCellAddress]) {
-                worksheet[nomorProjectCellAddress].s = {
-                    alignment: { horizontal: "center", vertical: "center" },
-                };
-            }
-
-            // KEPALA PROJECT column (D) - left align
-            const kepalaProjectCellAddress = XLSX.utils.encode_cell({ r: row, c: 3 });
-            if (worksheet[kepalaProjectCellAddress]) {
-                worksheet[kepalaProjectCellAddress].s = {
-                    alignment: { horizontal: "left", vertical: "center" },
-                };
-            }
-
-            // PROGRES column (E) - center align
-            const progresCellAddress = XLSX.utils.encode_cell({ r: row, c: 4 });
-            if (worksheet[progresCellAddress]) {
-                worksheet[progresCellAddress].s = {
-                    alignment: { horizontal: "center", vertical: "center" },
-                };
-            }
-
-            // TANGGAL column (F) - center align
-            const tanggalCellAddress = XLSX.utils.encode_cell({ r: row, c: 5 });
+            // TANGGAL column (C) - center align
+            const tanggalCellAddress = XLSX.utils.encode_cell({ r: row, c: 2 });
             if (worksheet[tanggalCellAddress]) {
                 worksheet[tanggalCellAddress].s = {
                     alignment: { horizontal: "center", vertical: "center" },
                 };
             }
 
-            // NAMA APD column (G) - left align
-            const namaApdCellAddress = XLSX.utils.encode_cell({ r: row, c: 6 });
+            // NOMOR PROJECT column (D) - center align
+            const nomorProjectCellAddress = XLSX.utils.encode_cell({ r: row, c: 3 });
+            if (worksheet[nomorProjectCellAddress]) {
+                worksheet[nomorProjectCellAddress].s = {
+                    alignment: { horizontal: "center", vertical: "center" },
+                };
+            }
+
+            // KEPALA PROJECT column (E) - left align
+            const kepalaProjectCellAddress = XLSX.utils.encode_cell({ r: row, c: 4 });
+            if (worksheet[kepalaProjectCellAddress]) {
+                worksheet[kepalaProjectCellAddress].s = {
+                    alignment: { horizontal: "left", vertical: "center" },
+                };
+            }
+
+            // NAMA APD column (F) - left align
+            const namaApdCellAddress = XLSX.utils.encode_cell({ r: row, c: 5 });
             if (worksheet[namaApdCellAddress]) {
                 worksheet[namaApdCellAddress].s = {
                     alignment: { horizontal: "left", vertical: "center" },
                 };
             }
 
-            // JUMLAH column (H) - center align
-            const jumlahCellAddress = XLSX.utils.encode_cell({ r: row, c: 7 });
-            if (worksheet[jumlahCellAddress]) {
-                worksheet[jumlahCellAddress].s = {
+            // QTY column (G) - center align
+            const qtyCellAddress = XLSX.utils.encode_cell({ r: row, c: 6 });
+            if (worksheet[qtyCellAddress]) {
+                worksheet[qtyCellAddress].s = {
                     alignment: { horizontal: "center", vertical: "center" },
                 };
             }
 
-            // UNIT column (I) - center align
-            const unitCellAddress = XLSX.utils.encode_cell({ r: row, c: 8 });
-            if (worksheet[unitCellAddress]) {
-                worksheet[unitCellAddress].s = {
-                    alignment: { horizontal: "center", vertical: "center" },
-                };
-            }
-
-            // HARGA column (J) - right align
-            const hargaCellAddress = XLSX.utils.encode_cell({ r: row, c: 9 });
+            // HARGA column (H) - right align
+            const hargaCellAddress = XLSX.utils.encode_cell({ r: row, c: 7 });
             if (worksheet[hargaCellAddress]) {
                 worksheet[hargaCellAddress].s = {
                     alignment: { horizontal: "right", vertical: "center" },
                 };
             }
 
-            // TOTAL column (K) - right align
-            const totalCellAddress = XLSX.utils.encode_cell({ r: row, c: 10 });
+            // TOTAL column (I) - right align
+            const totalCellAddress = XLSX.utils.encode_cell({ r: row, c: 8 });
             if (worksheet[totalCellAddress]) {
                 worksheet[totalCellAddress].s = {
                     alignment: { horizontal: "right", vertical: "center" },
                 };
             }
 
-            // KETERANGAN column (L) - left align
-            const keteranganCellAddress = XLSX.utils.encode_cell({ r: row, c: 11 });
+            // PROGRES column (J) - center align
+            const progresCellAddress = XLSX.utils.encode_cell({ r: row, c: 9 });
+            if (worksheet[progresCellAddress]) {
+                worksheet[progresCellAddress].s = {
+                    alignment: { horizontal: "center", vertical: "center" },
+                };
+            }
+
+            // KETERANGAN column (K) - left align
+            const keteranganCellAddress = XLSX.utils.encode_cell({ r: row, c: 10 });
             if (worksheet[keteranganCellAddress]) {
                 worksheet[keteranganCellAddress].s = {
                     alignment: { horizontal: "left", vertical: "center" },

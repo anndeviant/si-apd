@@ -61,7 +61,7 @@ export default function PengajuanPage() {
       case "project":
         return <PengajuanProject userId={user.id} />;
       case "kpi":
-        return <PengajuanKpi userId={user.id} />;
+        return <PengajuanKpi />;
       case "mandatory":
         return (
           <Card className="w-full">

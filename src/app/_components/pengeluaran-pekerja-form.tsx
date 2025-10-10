@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Download } from "lucide-react";
+import { Trash2, Download, Search } from "lucide-react";
 import { useApdItems } from "@/hooks/use-apd-items";
 import {
   usePengeluaranPekerja,
@@ -43,9 +44,19 @@ export default function PengeluaranPekerjaForm() {
   const [selectedApdId, setSelectedApdId] = useState<number | undefined>();
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [apdSearchTerm, setApdSearchTerm] = useState<string>("");
 
   // Hooks untuk data
   const { items: apdItems = [] } = useApdItems();
+
+  // Filter APD items based on search term
+  const filteredApdItems = useMemo(() => {
+    if (!apdSearchTerm.trim()) return apdItems;
+
+    return apdItems.filter((item) =>
+      item.name.toLowerCase().includes(apdSearchTerm.toLowerCase())
+    );
+  }, [apdItems, apdSearchTerm]);
   const {
     data: pengeluaranData = [],
     availablePeriods = [],
@@ -141,28 +152,58 @@ export default function PengeluaranPekerjaForm() {
             </label>
             <Select
               value={selectedApdId?.toString() || "all"}
-              onValueChange={(value) =>
-                setSelectedApdId(value === "all" ? undefined : parseInt(value))
-              }
+              onValueChange={(value) => {
+                setSelectedApdId(value === "all" ? undefined : parseInt(value));
+                setApdSearchTerm(""); // Clear search when selection is made
+              }}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setApdSearchTerm(""); // Clear search when dropdown is closed
+                }
+              }}
             >
               <SelectTrigger className="w-full h-9 text-sm">
                 <SelectValue placeholder="Semua APD" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua APD</SelectItem>
-                {apdItems && apdItems.length > 0 ? (
-                  apdItems
-                    .filter((apd) => apd && apd.id && apd.name)
-                    .map((apd) => (
-                      <SelectItem key={apd.id} value={apd.id.toString()}>
-                        {apd.name}
-                      </SelectItem>
-                    ))
-                ) : (
-                  <SelectItem value="loading" disabled>
-                    Memuat APD...
-                  </SelectItem>
-                )}
+                {/* Search Field */}
+                <div className="p-2 border-b">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Cari APD..."
+                      value={apdSearchTerm}
+                      onChange={(e) => setApdSearchTerm(e.target.value)}
+                      className="pl-8 h-8"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </div>
+
+                {/* Items List */}
+                <div className="max-h-60 overflow-y-auto">
+                  <SelectItem value="all">Semua APD</SelectItem>
+                  {apdItems && apdItems.length > 0 ? (
+                    filteredApdItems.length === 0 && apdSearchTerm.trim() ? (
+                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                        Tidak ditemukan APD yang sesuai
+                      </div>
+                    ) : (
+                      filteredApdItems
+                        .filter((apd) => apd && apd.id && apd.name)
+                        .map((apd) => (
+                          <SelectItem key={apd.id} value={apd.id.toString()}>
+                            {apd.name}
+                          </SelectItem>
+                        ))
+                    )
+                  ) : (
+                    <SelectItem value="loading" disabled>
+                      Memuat APD...
+                    </SelectItem>
+                  )}
+                </div>
               </SelectContent>
             </Select>
           </div>
@@ -252,6 +293,11 @@ export default function PengeluaranPekerjaForm() {
                     <TableHead className="min-w-[100px] text-center border text-xs p-2">
                       Bengkel
                     </TableHead>
+                    {selectedApdId === undefined && (
+                      <TableHead className="min-w-[100px] text-center border text-xs p-2">
+                        Jenis APD
+                      </TableHead>
+                    )}
                     <TableHead className="min-w-[60px] text-center border text-xs p-2">
                       Qty
                     </TableHead>
@@ -275,6 +321,11 @@ export default function PengeluaranPekerjaForm() {
                       <TableCell className="text-center border text-xs p-2">
                         {item.bengkel_name}
                       </TableCell>
+                      {selectedApdId === undefined && (
+                        <TableCell className="text-center border text-xs p-2">
+                          {item.apd_name || "-"}
+                        </TableCell>
+                      )}
                       <TableCell className="text-center border text-xs p-2">
                         {item.qty} {item.satuan}
                       </TableCell>

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useDivisi } from "@/contexts/divisi-context";
@@ -46,6 +46,16 @@ export function DivisiSelector({
   const [isAddingItem, setIsAddingItem] = React.useState(false);
   const [newItemName, setNewItemName] = React.useState("");
   const [addItemError, setAddItemError] = React.useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  // Filter items based on search term
+  const filteredItems = React.useMemo(() => {
+    if (!searchTerm.trim()) return items;
+
+    return items.filter((item) =>
+      item.nama_divisi.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [items, searchTerm]);
 
   const handleAddNewItem = async () => {
     if (!newItemName.trim()) {
@@ -127,17 +137,45 @@ export function DivisiSelector({
             </SelectItem>
           ) : (
             <>
-              {items.map((item) => (
-                <SelectItem key={item.id} value={item.id.toString()}>
-                  {item.nama_divisi}
-                </SelectItem>
-              ))}
-              <SelectItem value="add-new">
-                <div className="flex items-center space-x-2 text-blue-600">
-                  <Plus className="h-4 w-4" />
-                  <span>Tambah Divisi</span>
+              {/* Search Field */}
+              <div className="p-2 border-b">
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Cari divisi..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8 h-8"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  />
                 </div>
-              </SelectItem>
+              </div>
+
+              {/* Add New Button */}
+              <div className="p-2 border-b">
+                <SelectItem value="add-new">
+                  <div className="flex items-center space-x-2 text-blue-600">
+                    <Plus className="h-4 w-4" />
+                    <span>Tambah Divisi</span>
+                  </div>
+                </SelectItem>
+              </div>
+
+              {/* Items List */}
+              <div className="max-h-60 overflow-y-auto">
+                {filteredItems.length === 0 && searchTerm.trim() ? (
+                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                    Tidak ditemukan divisi yang sesuai
+                  </div>
+                ) : (
+                  filteredItems.map((item) => (
+                    <SelectItem key={item.id} value={item.id.toString()}>
+                      {item.nama_divisi}
+                    </SelectItem>
+                  ))
+                )}
+              </div>
             </>
           )}
         </SelectContent>

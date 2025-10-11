@@ -47,6 +47,7 @@ export function DivisiSelector({
   const [newItemName, setNewItemName] = React.useState("");
   const [addItemError, setAddItemError] = React.useState<string | null>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   // Filter items based on search term
   const filteredItems = React.useMemo(() => {
@@ -140,14 +141,33 @@ export function DivisiSelector({
               {/* Search Field */}
               <div className="p-2 border-b">
                 <div className="relative">
-                  <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                   <Input
+                    ref={searchInputRef}
                     placeholder="Cari divisi..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 h-8"
-                    onClick={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
+                    className="pl-8 h-8 w-full select-search-input"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    inputMode="search"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.currentTarget.focus();
+                    }}
+                    onKeyDown={(e) => {
+                      // Allow normal input behavior but prevent Select from closing
+                      if (e.key === "Escape") {
+                        e.stopPropagation();
+                        e.currentTarget.blur();
+                      } else if (e.key === "Enter") {
+                        e.stopPropagation();
+                      }
+                    }}
                   />
                 </div>
               </div>

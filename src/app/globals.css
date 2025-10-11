@@ -151,4 +151,34 @@
   .table-scroll-container::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
   }
+
+  /* Mobile-friendly input fields in dropdowns */
+  .select-search-input {
+    /* Prevent zoom on iOS when input is focused */
+    font-size: 16px;
+    /* Ensure proper touch targets */
+    min-height: 44px;
+    /* Prevent iOS autocomplete styling */
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* iOS-specific input handling */
+  @supports (-webkit-touch-callout: none) {
+    .select-search-input {
+      /* Prevent iOS zoom on focus */
+      transform: translateZ(0);
+      /* Better touch handling */
+      -webkit-tap-highlight-color: transparent;
+    }
+  }
+
+  /* Android-specific input handling */
+  @media screen and (max-width: 768px) {
+    .select-search-input {
+      /* Better Android keyboard handling */
+      background-color: transparent;
+      outline: none;
+    }
+  }
 }

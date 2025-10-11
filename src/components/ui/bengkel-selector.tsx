@@ -128,7 +128,7 @@ export function BengkelSelector({
         <SelectTrigger className={cn(className)}>
           <SelectValue placeholder={loading ? "Memuat..." : placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
           {loading ? (
             <SelectItem value="loading" disabled>
               <div className="flex items-center space-x-2">
@@ -139,7 +139,11 @@ export function BengkelSelector({
           ) : (
             <>
               {/* Search Field */}
-              <div className="p-2 border-b">
+              <div
+                className="p-2 border-b"
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+              >
                 <div className="relative">
                   <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                   <Input
@@ -155,17 +159,26 @@ export function BengkelSelector({
                     inputMode="search"
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
-                      e.currentTarget.focus();
+                      e.preventDefault();
+                      // Delay focus to ensure dropdown stays open
+                      setTimeout(() => {
+                        e.currentTarget.focus();
+                      }, 10);
+                    }}
+                    onFocus={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onBlur={(e) => {
+                      e.stopPropagation();
                     }}
                     onKeyDown={(e) => {
-                      // Allow normal input behavior but prevent Select from closing
+                      e.stopPropagation();
+                      // Allow all input behavior
                       if (e.key === "Escape") {
-                        e.stopPropagation();
                         e.currentTarget.blur();
-                      } else if (e.key === "Enter") {
-                        e.stopPropagation();
                       }
                     }}
                   />

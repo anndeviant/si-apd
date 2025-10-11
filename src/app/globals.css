@@ -181,4 +181,25 @@
       outline: none;
     }
   }
+
+  /* Prevent mobile browsers from closing dropdown on input focus */
+  .select-search-input:focus {
+    /* Force keep focus */
+    outline: 2px solid rgb(59 130 246); /* blue-500 */
+    outline-offset: -2px;
+  }
+
+  /* Mobile-specific dropdown content */
+  @media (max-width: 768px) {
+    [data-radix-select-content] {
+      /* Prevent accidental close on mobile */
+      touch-action: none;
+    }
+    
+    .select-search-input {
+      /* Larger touch target for mobile */
+      min-height: 48px;
+      padding: 12px 8px 12px 32px;
+    }
+  }
 }

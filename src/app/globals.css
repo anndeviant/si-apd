@@ -152,54 +152,110 @@
     @apply bg-gray-400;
   }
 
-  /* Mobile-friendly input fields in dropdowns */
+  /* Universal mobile-friendly input fields */
+  input[type="text"],
+  input[type="search"],
   .select-search-input {
-    /* Prevent zoom on iOS when input is focused */
-    font-size: 16px;
-    /* Ensure proper touch targets */
+    /* Prevent zoom on iOS - CRITICAL for keyboard */
+    font-size: 16px !important;
+    /* Minimum touch target */
     min-height: 44px;
-    /* Prevent iOS autocomplete styling */
+    /* Remove browser styling that can interfere */
     -webkit-appearance: none;
     appearance: none;
+    /* Prevent text selection issues */
+    -webkit-user-select: text;
+    user-select: text;
+    /* Force input mode */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
-  /* iOS-specific input handling */
-  @supports (-webkit-touch-callout: none) {
-    .select-search-input {
-      /* Prevent iOS zoom on focus */
-      transform: translateZ(0);
-      /* Better touch handling */
-      -webkit-tap-highlight-color: transparent;
-    }
-  }
-
-  /* Android-specific input handling */
-  @media screen and (max-width: 768px) {
-    .select-search-input {
-      /* Better Android keyboard handling */
-      background-color: transparent;
-      outline: none;
-    }
-  }
-
-  /* Prevent mobile browsers from closing dropdown on input focus */
+  /* Universal focus handling - works across all browsers */
+  input:focus,
+  input[type="text"]:focus,
+  input[type="search"]:focus,
   .select-search-input:focus {
-    /* Force keep focus */
-    outline: 2px solid rgb(59 130 246); /* blue-500 */
+    /* Force focus visibility */
+    outline: 2px solid rgb(59 130 246) !important;
     outline-offset: -2px;
+    /* Prevent browser interference */
+    -webkit-tap-highlight-color: transparent;
+    /* Ensure keyboard appears */
+    -webkit-user-select: text;
+    user-select: text;
   }
 
-  /* Mobile-specific dropdown content */
+  /* Dropdown content - prevent close on interaction */
+  [data-radix-select-content] {
+    /* Allow interaction without closing */
+    pointer-events: auto;
+    touch-action: manipulation;
+  }
+
+  /* Dropdown input containers - prevent event bubbling */
+  [data-radix-select-content] .relative {
+    /* Stop events from bubbling up */
+    pointer-events: auto;
+  }
+
+  [data-radix-select-content] input {
+    /* Ensure input is interactive */
+    pointer-events: auto !important;
+    /* Force cursor */
+    cursor: text !important;
+    /* Prevent zoom (iOS) */
+    font-size: 16px !important;
+    /* Proper z-index */
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Mobile-specific optimizations */
   @media (max-width: 768px) {
-    [data-radix-select-content] {
-      /* Prevent accidental close on mobile */
-      touch-action: none;
+    /* Larger touch targets */
+    input[type="text"],
+    input[type="search"],
+    .select-search-input {
+      min-height: 48px !important;
+      padding: 12px 8px !important;
+      font-size: 16px !important;
     }
     
-    .select-search-input {
-      /* Larger touch target for mobile */
-      min-height: 48px;
-      padding: 12px 8px 12px 32px;
+    /* Dropdown specific */
+    [data-radix-select-content] input {
+      padding: 12px 8px 12px 32px !important;
+      min-height: 48px !important;
+    }
+    
+    /* Prevent accidental dropdown close */
+    [data-radix-select-content] {
+      touch-action: none;
+    }
+  }
+
+  /* iOS Safari specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    input[type="text"],
+    input[type="search"] {
+      /* Prevent zoom */
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      /* Better touch response */
+      -webkit-tap-highlight-color: transparent;
+      /* Force input behavior */
+      -webkit-appearance: none;
+    }
+  }
+
+  /* Android Chrome/WebView specific */
+  @media screen and (max-device-width: 768px) {
+    input {
+      /* Prevent Android keyboard issues */
+      background-color: white;
+      color: black;
+      /* Force proper rendering */
+      -webkit-text-fill-color: black;
     }
   }
 }

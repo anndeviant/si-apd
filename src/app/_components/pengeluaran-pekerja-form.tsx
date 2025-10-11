@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useMobileInputFocus } from "@/hooks/use-mobile-input-focus";
 import {
   Table,
   TableBody,
@@ -45,6 +46,9 @@ export default function PengeluaranPekerjaForm() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [apdSearchTerm, setApdSearchTerm] = useState<string>("");
+
+  // Hook untuk mobile input focus
+  const { inputProps } = useMobileInputFocus();
 
   // Hooks untuk data
   const { items: apdItems = [] } = useApdItems();
@@ -124,7 +128,7 @@ export default function PengeluaranPekerjaForm() {
               Pilih Periode
             </label>
             <Select value={selectedPeriode} onValueChange={setSelectedPeriode}>
-              <SelectTrigger className="w-full h-9 text-sm">
+              <SelectTrigger className="w-full h-9 text-sm max-w-xs">
                 <SelectValue placeholder="Pilih periode" />
               </SelectTrigger>
               <SelectContent>
@@ -162,21 +166,34 @@ export default function PengeluaranPekerjaForm() {
                 }
               }}
             >
-              <SelectTrigger className="w-full h-9 text-sm">
+              <SelectTrigger className="w-full h-9 text-sm max-w-xs">
                 <SelectValue placeholder="Semua APD" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                onPointerDownOutside={(e) => {
+                  // Don't close dropdown when clicking on search input
+                  const target = e.target as Element;
+                  if (target.closest("input")) {
+                    e.preventDefault();
+                  }
+                }}
+              >
                 {/* Search Field */}
-                <div className="p-2 border-b">
+                <div
+                  className="p-2 border-b"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                >
                   <div className="relative">
-                    <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                     <Input
+                      {...inputProps}
                       placeholder="Cari APD..."
                       value={apdSearchTerm}
                       onChange={(e) => setApdSearchTerm(e.target.value)}
-                      className="pl-8 h-8"
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => e.stopPropagation()}
+                      className="pl-8 h-8 w-full"
                     />
                   </div>
                 </div>

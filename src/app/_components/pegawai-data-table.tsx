@@ -259,6 +259,9 @@ export default function PegawaiDataTable() {
                 <TableHead className="min-w-[120px] text-center border text-xs p-2">
                   POSISI
                 </TableHead>
+                <TableHead className="min-w-[120px] text-center border text-xs p-2">
+                  BENGKEL
+                </TableHead>
                 <TableHead className="min-w-[80px] text-center border text-xs p-2">
                   <div className="flex flex-col">
                     <span>SIZE</span>
@@ -303,7 +306,7 @@ export default function PegawaiDataTable() {
                   {/* Separator Row untuk Divisi */}
                   <TableRow>
                     <TableCell
-                      colSpan={10}
+                      colSpan={11}
                       className="bg-blue-100 border text-xs p-2 font-semibold text-center uppercase"
                     >
                       {group.divisi}
@@ -320,6 +323,9 @@ export default function PegawaiDataTable() {
                       </TableCell>
                       <TableCell className="text-center border text-xs p-2">
                         {pegawai.posisi?.nama_posisi || "-"}
+                      </TableCell>
+                      <TableCell className="text-center border text-xs p-2">
+                        {pegawai.bengkel?.name || "-"}
                       </TableCell>
                       <TableCell className="text-center border text-xs p-2">
                         {pegawai.size_sepatu || "-"}

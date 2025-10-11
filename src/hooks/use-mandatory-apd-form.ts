@@ -7,6 +7,7 @@ export interface MandatoryApdFormData {
     nip: string;
     divisi_id: number | null;
     posisi_id: number | null;
+    bengkel_id: number | null;
     size_sepatu: number | null;
     jenis_sepatu: string;
     warna_katelpack: string;
@@ -19,6 +20,7 @@ const initialFormData: MandatoryApdFormData = {
     nip: '',
     divisi_id: null,
     posisi_id: null,
+    bengkel_id: null,
     size_sepatu: null,
     jenis_sepatu: '',
     warna_katelpack: '',
@@ -68,6 +70,9 @@ export function useMandatoryApdForm() {
         if (!formData.posisi_id) {
             return 'Posisi harus dipilih';
         }
+        if (!formData.bengkel_id) {
+            return 'Bengkel harus dipilih';
+        }
         return null;
     };
 
@@ -87,6 +92,7 @@ export function useMandatoryApdForm() {
                 nip: formData.nip.trim(),
                 divisi_id: formData.divisi_id!,
                 posisi_id: formData.posisi_id!,
+                bengkel_id: formData.bengkel_id!,
                 // Explicitly set optional fields - send null if empty to override database defaults
                 size_sepatu: (formData.size_sepatu && formData.size_sepatu > 0) ? formData.size_sepatu : null,
                 jenis_sepatu: formData.jenis_sepatu.trim() || null,

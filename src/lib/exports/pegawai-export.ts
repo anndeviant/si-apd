@@ -27,6 +27,7 @@ export function exportPegawaiToExcel(
         'NO',
         'NAMA',
         'POSISI',
+        'BENGKEL',
         'SIZE (Sepatu)',
         'JENIS SEPATU',
         'Warna katelpack',
@@ -52,6 +53,7 @@ export function exportPegawaiToExcel(
                 index + 1, // NO (starts from 1 for each divisi)
                 pegawai.nama || '-',
                 pegawai.posisi?.nama_posisi || '-',
+                pegawai.bengkel?.name || '-',
                 pegawai.size_sepatu?.toString() || '-',
                 pegawai.jenis_sepatu || '-',
                 pegawai.warna_katelpack || '-',
@@ -72,6 +74,7 @@ export function exportPegawaiToExcel(
         { wch: 6 },   // NO
         { wch: 25 },  // NAMA
         { wch: 18 },  // POSISI
+        { wch: 16 },  // BENGKEL
         { wch: 14 },  // SIZE (Sepatu)
         { wch: 16 },  // JENIS SEPATU
         { wch: 16 },  // Warna katelpack

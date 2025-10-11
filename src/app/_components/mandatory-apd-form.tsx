@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DivisiSelector } from "@/components/ui/divisi-selector";
 import { PosisiSelector } from "@/components/ui/posisi-selector";
+import { BengkelSelector } from "@/components/ui/bengkel-selector";
 
 export default function MandatoryApdForm() {
   const { formData, updateField, resetForm, submitForm, isSubmitting, error } =
@@ -85,6 +86,18 @@ export default function MandatoryApdForm() {
               value={formData.posisi_id}
               onChange={(value) => updateField("posisi_id", value)}
               placeholder="Pilih posisi/jabatan..."
+              disabled={isSubmitting}
+              className="w-full"
+            />
+          </div>
+
+          {/* Bengkel */}
+          <div className="grid gap-2">
+            <Label htmlFor="bengkel">Bengkel / Unit *</Label>
+            <BengkelSelector
+              value={formData.bengkel_id}
+              onChange={(value) => updateField("bengkel_id", value)}
+              placeholder="Pilih bengkel/unit..."
               disabled={isSubmitting}
               className="w-full"
             />

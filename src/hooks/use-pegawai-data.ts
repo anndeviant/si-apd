@@ -57,6 +57,11 @@ export function usePegawaiData() {
                 return true;
             }
 
+            // Search di nama bengkel
+            if (pegawai.bengkel?.name?.toLowerCase().includes(term)) {
+                return true;
+            }
+
             return false;
         });
     }, [pegawaiList, searchTerm]);
@@ -73,12 +78,16 @@ export function usePegawaiData() {
             groups[divisiName].push(pegawai);
         });
 
-        // Sort divisi alphabetically and return as array of objects
+        // Sort divisi alphabetically and sort pegawai within each divisi by bengkel name
         return Object.keys(groups)
             .sort()
             .map(divisiName => ({
                 divisi: divisiName,
-                pegawai: groups[divisiName]
+                pegawai: groups[divisiName].sort((a, b) => {
+                    const bengkelA = a.bengkel?.name || 'ZZZ'; // Put undefined bengkel at end
+                    const bengkelB = b.bengkel?.name || 'ZZZ';
+                    return bengkelA.localeCompare(bengkelB);
+                })
             }));
     }, [filteredPegawai]);    // Handle delete pegawai
     const handleDeletePegawai = async (id: number): Promise<boolean> => {

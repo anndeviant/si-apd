@@ -222,6 +222,7 @@ export interface Pegawai {
     nip?: string;
     divisi_id?: number;
     posisi_id?: number;
+    bengkel_id?: number;
     size_sepatu?: number;
     jenis_sepatu?: string;
     warna_katelpack?: string;
@@ -235,6 +236,8 @@ export interface Pegawai {
 export interface PegawaiWithRelations extends Pegawai {
     divisi?: Divisi;
     posisi?: Posisi;
+    bengkel?: ApdBengkel;
+    apd_bengkel?: ApdBengkel;
 }
 
 export interface CreatePegawaiData {
@@ -242,6 +245,7 @@ export interface CreatePegawaiData {
     nip: string;
     divisi_id: number;
     posisi_id: number;
+    bengkel_id?: number | null;
     size_sepatu?: number | null;
     jenis_sepatu?: string | null;
     warna_katelpack?: string | null;
@@ -257,6 +261,7 @@ export interface UpdatePegawaiData {
     nip?: string;
     divisi_id?: number;
     posisi_id?: number;
+    bengkel_id?: number | null;
     size_sepatu?: number | null;
     jenis_sepatu?: string | null;
     warna_katelpack?: string | null;

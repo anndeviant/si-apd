@@ -18,6 +18,7 @@ import PengajuanKpi from "@/app/_components/pengajuan-kpi";
 import PengajuanKonsumable from "@/app/_components/pengajuan-konsumable";
 import { DivisiProvider } from "@/contexts/divisi-context";
 import { PosisiProvider } from "@/contexts/posisi-context";
+import { BengkelProvider } from "@/contexts/bengkel-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -105,7 +106,9 @@ export default function PengajuanPage() {
                     </h3>
                     <DivisiProvider>
                       <PosisiProvider>
-                        <MandatoryApdForm />
+                        <BengkelProvider>
+                          <MandatoryApdForm />
+                        </BengkelProvider>
                       </PosisiProvider>
                     </DivisiProvider>
                   </div>

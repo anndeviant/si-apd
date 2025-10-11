@@ -7,7 +7,7 @@ interface ExcelExportOptions {
 }
 
 export function exportPegawaiToExcel(
-    groupedData: { divisi: string; pegawai: PegawaiWithRelations[] }[],
+    groupedData: { divisi: string; bengkelList: { bengkel: string; pegawai: PegawaiWithRelations[] }[] }[],
     options: ExcelExportOptions = {}
 ) {
     const { filename = 'Data_Pegawai_Mandatory_APD', sheetName = 'Data Pegawai' } = options;
@@ -20,6 +20,7 @@ export function exportPegawaiToExcel(
 
     // Track rows for styling (header + all data rows)
     const divisiRows: number[] = []; // Track which rows are divisi separators
+    const bengkelRows: number[] = []; // Track which rows are bengkel separators
     let rowIndex = 0;
 
     // Add header row (exactly like web)
@@ -27,7 +28,6 @@ export function exportPegawaiToExcel(
         'NO',
         'NAMA',
         'POSISI',
-        'BENGKEL',
         'SIZE (Sepatu)',
         'JENIS SEPATU',
         'Warna katelpack',
@@ -38,7 +38,8 @@ export function exportPegawaiToExcel(
     excelData.push(headers);
     rowIndex++;
 
-    // Add data rows grouped by divisi (exactly like web ordering)
+    // Add data rows grouped by divisi and bengkel (exactly like web ordering)
+    let globalIndex = 0;
     groupedData.forEach((group) => {
         // Add divisi separator row
         divisiRows.push(rowIndex);
@@ -47,22 +48,32 @@ export function exportPegawaiToExcel(
         excelData.push(divisiRow);
         rowIndex++;
 
-        // Add pegawai data for this divisi (ordered same as web)
-        group.pegawai.forEach((pegawai, index) => {
-            const row = [
-                index + 1, // NO (starts from 1 for each divisi)
-                pegawai.nama || '-',
-                pegawai.posisi?.nama_posisi || '-',
-                pegawai.bengkel?.name || '-',
-                pegawai.size_sepatu?.toString() || '-',
-                pegawai.jenis_sepatu || '-',
-                pegawai.warna_katelpack || '-',
-                pegawai.size_katelpack || '-',
-                pegawai.warna_helm || '-',
-                pegawai.nip || '-'
-            ];
-            excelData.push(row);
+        // Add bengkel groups within this divisi
+        group.bengkelList.forEach((bengkelGroup) => {
+            // Add bengkel separator row
+            bengkelRows.push(rowIndex);
+            const bengkelRow: (string | number)[] = new Array(headers.length).fill('');
+            bengkelRow[0] = bengkelGroup.bengkel;
+            excelData.push(bengkelRow);
             rowIndex++;
+
+            // Add pegawai data for this bengkel
+            bengkelGroup.pegawai.forEach((pegawai) => {
+                globalIndex++;
+                const row = [
+                    globalIndex, // Global numbering across all divisions and bengkel
+                    pegawai.nama || '-',
+                    pegawai.posisi?.nama_posisi || '-',
+                    pegawai.size_sepatu?.toString() || '-',
+                    pegawai.jenis_sepatu || '-',
+                    pegawai.warna_katelpack || '-',
+                    pegawai.size_katelpack || '-',
+                    pegawai.warna_helm || '-',
+                    pegawai.nip || '-'
+                ];
+                excelData.push(row);
+                rowIndex++;
+            });
         });
     });
 
@@ -74,7 +85,6 @@ export function exportPegawaiToExcel(
         { wch: 6 },   // NO
         { wch: 25 },  // NAMA
         { wch: 18 },  // POSISI
-        { wch: 16 },  // BENGKEL
         { wch: 14 },  // SIZE (Sepatu)
         { wch: 16 },  // JENIS SEPATU
         { wch: 16 },  // Warna katelpack
@@ -132,7 +142,7 @@ export function exportPegawaiToExcel(
                 ...ws[cellAddress].s, // Preserve existing styling
                 fill: { fgColor: { rgb: 'DBEAFE' } }, // blue-100
                 font: { bold: true },
-                alignment: { horizontal: 'left', vertical: 'center' }, // Left aligned like web
+                alignment: { horizontal: 'center', vertical: 'center' }, // Center aligned for divisi
                 border: borderStyle // Use consistent border
             };
         }
@@ -145,10 +155,31 @@ export function exportPegawaiToExcel(
         });
     });
 
+    // Style bengkel separator rows - Purple background like web
+    bengkelRows.forEach((rowNum) => {
+        for (let col = range.s.c; col <= range.e.c; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: rowNum, c: col });
+            ws[cellAddress].s = {
+                ...ws[cellAddress].s, // Preserve existing styling
+                fill: { fgColor: { rgb: 'F3E8FF' } }, // purple-100
+                font: { bold: false },
+                alignment: { horizontal: 'center', vertical: 'center' }, // Center aligned for bengkel
+                border: borderStyle // Use consistent border
+            };
+        }
+
+        // Merge cells for bengkel row (span across all columns)
+        if (!ws['!merges']) ws['!merges'] = [];
+        ws['!merges'].push({
+            s: { r: rowNum, c: 0 },
+            e: { r: rowNum, c: headers.length - 1 }
+        });
+    });
+
     // Style data rows (white background, proper alignment like web)
     for (let row = 1; row <= range.e.r; row++) {
-        // Skip divisi separator rows
-        if (divisiRows.includes(row)) continue;
+        // Skip divisi and bengkel separator rows
+        if (divisiRows.includes(row) || bengkelRows.includes(row)) continue;
 
         for (let col = range.s.c; col <= range.e.c; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });

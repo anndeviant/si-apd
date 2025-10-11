@@ -259,9 +259,6 @@ export default function PegawaiDataTable() {
                 <TableHead className="min-w-[120px] text-center border text-xs p-2">
                   POSISI
                 </TableHead>
-                <TableHead className="min-w-[120px] text-center border text-xs p-2">
-                  BENGKEL
-                </TableHead>
                 <TableHead className="min-w-[80px] text-center border text-xs p-2">
                   <div className="flex flex-col">
                     <span>SIZE</span>
@@ -306,71 +303,82 @@ export default function PegawaiDataTable() {
                   {/* Separator Row untuk Divisi */}
                   <TableRow>
                     <TableCell
-                      colSpan={11}
+                      colSpan={10}
                       className="bg-blue-100 border text-xs p-2 font-semibold text-center uppercase"
                     >
                       {group.divisi}
                     </TableCell>
                   </TableRow>
-                  {/* Data Pegawai dalam Divisi */}
-                  {group.pegawai.map((pegawai, index) => (
-                    <TableRow key={pegawai.id}>
-                      <TableCell className="text-center border text-xs p-2">
-                        {index + 1}
-                      </TableCell>
-                      <TableCell className="text-left border text-xs p-2">
-                        {pegawai.nama?.trim() || "-"}
-                      </TableCell>
-                      <TableCell className="text-center border text-xs p-2">
-                        {pegawai.posisi?.nama_posisi || "-"}
-                      </TableCell>
-                      <TableCell className="text-center border text-xs p-2">
-                        {pegawai.bengkel?.name || "-"}
-                      </TableCell>
-                      <TableCell className="text-center border text-xs p-2">
-                        {pegawai.size_sepatu || "-"}
-                      </TableCell>
-                      <TableCell className="text-left border text-xs p-2">
-                        {pegawai.jenis_sepatu?.trim() || "-"}
-                      </TableCell>
-                      <TableCell className="text-center border text-xs p-2">
-                        {pegawai.warna_katelpack?.trim() || "-"}
-                      </TableCell>
-                      <TableCell className="text-center border text-xs p-2">
-                        {pegawai.size_katelpack?.trim() || "-"}
-                      </TableCell>
-                      <TableCell className="text-center border text-xs p-2">
-                        {pegawai.warna_helm?.trim() || "-"}
-                      </TableCell>
-                      <TableCell className="text-center border text-xs p-2 font-mono">
-                        {pegawai.nip?.trim() || "-"}
-                      </TableCell>
-                      <TableCell className="text-center border text-xs p-2">
-                        <div className="flex items-center justify-center space-x-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEditClick(pegawai)}
-                            className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                              handleDeleteClick(
-                                pegawai.id,
-                                pegawai.nama || "Tidak diketahui"
-                              )
-                            }
-                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                  {/* Bengkel dan Data Pegawai dalam Divisi */}
+                  {group.bengkelList.map((bengkelGroup, bengkelIndex) => (
+                    <React.Fragment key={`bengkel-${bengkelIndex}`}>
+                      {/* Separator Row untuk Bengkel */}
+                      <TableRow>
+                        <TableCell
+                          colSpan={10}
+                          className="bg-purple-100 border text-xs p-2 font-medium text-center"
+                        >
+                          {bengkelGroup.bengkel}
+                        </TableCell>
+                      </TableRow>
+                      {/* Data Pegawai dalam Bengkel */}
+                      {bengkelGroup.pegawai.map((pegawai, index) => (
+                        <TableRow key={pegawai.id}>
+                          <TableCell className="text-center border text-xs p-2">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-left border text-xs p-2">
+                            {pegawai.nama?.trim() || "-"}
+                          </TableCell>
+                          <TableCell className="text-center border text-xs p-2">
+                            {pegawai.posisi?.nama_posisi || "-"}
+                          </TableCell>
+                          <TableCell className="text-center border text-xs p-2">
+                            {pegawai.size_sepatu || "-"}
+                          </TableCell>
+                          <TableCell className="text-left border text-xs p-2">
+                            {pegawai.jenis_sepatu?.trim() || "-"}
+                          </TableCell>
+                          <TableCell className="text-center border text-xs p-2">
+                            {pegawai.warna_katelpack?.trim() || "-"}
+                          </TableCell>
+                          <TableCell className="text-center border text-xs p-2">
+                            {pegawai.size_katelpack?.trim() || "-"}
+                          </TableCell>
+                          <TableCell className="text-center border text-xs p-2">
+                            {pegawai.warna_helm?.trim() || "-"}
+                          </TableCell>
+                          <TableCell className="text-center border text-xs p-2 font-mono">
+                            {pegawai.nip?.trim() || "-"}
+                          </TableCell>
+                          <TableCell className="text-center border text-xs p-2">
+                            <div className="flex items-center justify-center space-x-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEditClick(pegawai)}
+                                className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() =>
+                                  handleDeleteClick(
+                                    pegawai.id,
+                                    pegawai.nama || "Tidak diketahui"
+                                  )
+                                }
+                                className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
                   ))}
                 </React.Fragment>
               ))}

@@ -66,29 +66,50 @@ export function usePegawaiData() {
         });
     }, [pegawaiList, searchTerm]);
 
-    // Group pegawai by divisi
+    // Group pegawai by divisi and bengkel
     const groupedPegawai = useMemo(() => {
-        const groups: { [key: string]: PegawaiWithRelations[] } = {};
+        const divisiGroups: { [key: string]: PegawaiWithRelations[] } = {};
 
         filteredPegawai.forEach((pegawai) => {
             const divisiName = pegawai.divisi?.nama_divisi || 'Tanpa Divisi';
-            if (!groups[divisiName]) {
-                groups[divisiName] = [];
+            if (!divisiGroups[divisiName]) {
+                divisiGroups[divisiName] = [];
             }
-            groups[divisiName].push(pegawai);
+            divisiGroups[divisiName].push(pegawai);
         });
 
-        // Sort divisi alphabetically and sort pegawai within each divisi by bengkel name
-        return Object.keys(groups)
+        // Sort divisi alphabetically and create bengkel subgroups
+        return Object.keys(divisiGroups)
             .sort()
-            .map(divisiName => ({
-                divisi: divisiName,
-                pegawai: groups[divisiName].sort((a, b) => {
-                    const bengkelA = a.bengkel?.name || 'ZZZ'; // Put undefined bengkel at end
-                    const bengkelB = b.bengkel?.name || 'ZZZ';
-                    return bengkelA.localeCompare(bengkelB);
-                })
-            }));
+            .map(divisiName => {
+                const pegawaiInDivisi = divisiGroups[divisiName];
+
+                // Group by bengkel within this divisi
+                const bengkelGroups: { [key: string]: PegawaiWithRelations[] } = {};
+
+                pegawaiInDivisi.forEach((pegawai) => {
+                    const bengkelName = pegawai.bengkel?.name || 'Tanpa Bengkel';
+                    if (!bengkelGroups[bengkelName]) {
+                        bengkelGroups[bengkelName] = [];
+                    }
+                    bengkelGroups[bengkelName].push(pegawai);
+                });
+
+                // Sort bengkel alphabetically and return structured data
+                const bengkelList = Object.keys(bengkelGroups)
+                    .sort()
+                    .map(bengkelName => ({
+                        bengkel: bengkelName,
+                        pegawai: bengkelGroups[bengkelName].sort((a, b) =>
+                            (a.nama || '').localeCompare(b.nama || '')
+                        )
+                    }));
+
+                return {
+                    divisi: divisiName,
+                    bengkelList: bengkelList
+                };
+            });
     }, [filteredPegawai]);    // Handle delete pegawai
     const handleDeletePegawai = async (id: number): Promise<boolean> => {
         try {

@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { UserProfilePhoto } from "@/components/ui/user-profile-photo";
 import { useLogoPersonal } from "@/hooks/use-logo-personal";
+import { ResetPasswordDialog } from "@/components/reset-password-dialog";
 
 export default function PengaturanPage() {
   const router = useRouter();
@@ -201,6 +202,32 @@ export default function PengaturanPage() {
             </CardContent>
           </Card>
 
+          {/* Security Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Keamanan Akun</CardTitle>
+              <CardDescription>
+                Kelola keamanan dan password akun Anda
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">
+                      Reset Password
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Kirim email reset password untuk mengubah password akun
+                      Anda
+                    </p>
+                  </div>
+                  <ResetPasswordDialog variant="settings" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* User Info Section */}
           <Card>
             <CardHeader>
@@ -246,6 +273,30 @@ export default function PengaturanPage() {
             </CardContent>
           </Card>
         </div>
+        {/* Call Center Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Bantuan & Dukungan</CardTitle>
+            <CardDescription>
+              Hubungi kami jika Anda memerlukan bantuan dengan aplikasi
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center space-y-4">
+              <div className="flex flex-col items-center justify-center py-4">
+                <span className="font-medium text-gray-700 mb-2">
+                  Call Center Aplikasi:
+                </span>
+                <a
+                  href="mailto:annisasalsabila318@gmail.com"
+                  className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                >
+                  annisasalsabila318@gmail.com
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Delete Confirmation Dialog */}

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase/client";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
+import { ResetPasswordDialog } from "@/components/reset-password-dialog";
 
 export function LoginForm({
   className,
@@ -142,6 +143,8 @@ export function LoginForm({
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Logging in…" : "Login"}
                 </Button>
+
+                <ResetPasswordDialog />
               </div>
             </div>
           </form>

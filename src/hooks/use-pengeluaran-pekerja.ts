@@ -7,6 +7,7 @@ interface UsePengeluaranPekerjaOptions {
     periode?: string;
     apd_id?: number;
     autoFetch?: boolean;
+    periodeType?: "month" | "year";
 }
 
 export function usePengeluaranPekerja(options: UsePengeluaranPekerjaOptions = {}) {
@@ -27,6 +28,7 @@ export function usePengeluaranPekerja(options: UsePengeluaranPekerjaOptions = {}
             const result = await fetchPengeluaranPekerja({
                 periode: options.periode,
                 apd_id: options.apd_id,
+                periodeType: options.periodeType,
             });
             setData(result);
         } catch (err) {
@@ -34,7 +36,7 @@ export function usePengeluaranPekerja(options: UsePengeluaranPekerjaOptions = {}
         } finally {
             setLoading(false);
         }
-    }, [options.periode, options.apd_id]);
+    }, [options.periode, options.apd_id, options.periodeType]);
 
     const fetchPeriods = async () => {
         try {

@@ -142,6 +142,7 @@ export function formatDate(date: Date): string {
 export async function fetchPengeluaranPekerja(filters?: {
     periode?: string;
     apd_id?: number;
+    periodeType?: "month" | "year";
 }): Promise<PengeluaranPekerjaData[]> {
     let query = supabase
         .from('apd_daily')
@@ -157,7 +158,14 @@ export async function fetchPengeluaranPekerja(filters?: {
         .order('tanggal', { ascending: true });
 
     if (filters?.periode) {
-        query = query.eq('periode', filters.periode);
+        if (filters.periodeType === "year") {
+            // For year filter, match all periods within that year
+            const year = filters.periode;
+            query = query.gte('periode', `${year}-01-01`).lt('periode', `${parseInt(year) + 1}-01-01`);
+        } else {
+            // For month filter, exact match
+            query = query.eq('periode', filters.periode);
+        }
     }
     if (filters?.apd_id) {
         query = query.eq('apd_id', filters.apd_id);

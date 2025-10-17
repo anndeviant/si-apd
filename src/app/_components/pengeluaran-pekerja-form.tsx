@@ -45,6 +45,8 @@ export default function PengeluaranPekerjaForm() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [apdSearchTerm, setApdSearchTerm] = useState<string>("");
+  const [namaSearchTerm, setNamaSearchTerm] = useState<string>("");
+  const [periodeType, setPeriodeType] = useState<"month" | "year">("month");
 
   // Hooks untuk data
   const { items: apdItems = [] } = useApdItems();
@@ -57,6 +59,18 @@ export default function PengeluaranPekerjaForm() {
       item.name.toLowerCase().includes(apdSearchTerm.toLowerCase())
     );
   }, [apdItems, apdSearchTerm]);
+  // Prepare periode parameter based on type
+  const preparedPeriode = useMemo(() => {
+    if (!selectedPeriode) return undefined;
+
+    if (periodeType === "year") {
+      // For year filter, we'll pass the year and handle it in the hook
+      return selectedPeriode;
+    }
+
+    return selectedPeriode;
+  }, [selectedPeriode, periodeType]);
+
   const {
     data: pengeluaranData = [],
     availablePeriods = [],
@@ -64,10 +78,49 @@ export default function PengeluaranPekerjaForm() {
     error: errorPengeluaran = null,
     deleteData,
   } = usePengeluaranPekerja({
-    periode: selectedPeriode,
+    periode: preparedPeriode,
     apd_id: selectedApdId,
     autoFetch: !!selectedPeriode,
+    periodeType: periodeType, // Add periode type to hook
   });
+
+  // Filter data berdasarkan nama search
+  const filteredPengeluaranData = useMemo(() => {
+    if (!namaSearchTerm.trim()) return pengeluaranData;
+
+    return pengeluaranData.filter((item) =>
+      item.nama.toLowerCase().includes(namaSearchTerm.toLowerCase())
+    );
+  }, [pengeluaranData, namaSearchTerm]);
+
+  // Group available periods by type (month/year)
+  const groupedPeriods = useMemo(() => {
+    const monthlyPeriods: string[] = [];
+    const yearlyPeriods: string[] = [];
+
+    availablePeriods.forEach((periode) => {
+      monthlyPeriods.push(periode);
+
+      // Extract year from periode (format: YYYY-MM-01)
+      const year = periode.split("-")[0];
+      if (!yearlyPeriods.includes(year)) {
+        yearlyPeriods.push(year);
+      }
+    });
+
+    return {
+      monthly: monthlyPeriods,
+      yearly: yearlyPeriods.sort((a, b) => b.localeCompare(a)), // Sort desc
+    };
+  }, [availablePeriods]);
+
+  // Get filtered periode options based on type
+  const filteredPeriodeOptions = useMemo(() => {
+    if (periodeType === "year") {
+      return groupedPeriods.yearly;
+    }
+    return groupedPeriods.monthly;
+  }, [groupedPeriods, periodeType]);
 
   const handleDelete = async (id: number) => {
     setDeletingId(id);
@@ -80,7 +133,7 @@ export default function PengeluaranPekerjaForm() {
   };
 
   const handleExportExcel = async () => {
-    if (!selectedPeriode || pengeluaranData.length === 0) {
+    if (!selectedPeriode || filteredPengeluaranData.length === 0) {
       toast.error("Tidak ada data untuk diekspor");
       return;
     }
@@ -94,15 +147,23 @@ export default function PengeluaranPekerjaForm() {
           "Semua APD"
         : "Semua APD";
 
-      const filename = await exportPengeluaranPekerjaToExcel(pengeluaranData, {
-        periode: formatPeriodeDisplay(selectedPeriode),
-        apdName: apdName,
-        filename: `Laporan_Pengeluaran_APD_${selectedPeriode.replace(
-          /\//g,
-          "_"
-        )}`,
-        sheetName: "Pengeluaran APD",
-      });
+      const periodeDisplay =
+        periodeType === "year"
+          ? selectedPeriode
+          : formatPeriodeDisplay(selectedPeriode);
+
+      const filename = await exportPengeluaranPekerjaToExcel(
+        filteredPengeluaranData,
+        {
+          periode: periodeDisplay,
+          apdName: apdName,
+          filename: `Laporan_Pengeluaran_APD_${selectedPeriode.replace(
+            /[\/\-]/g,
+            "_"
+          )}`,
+          sheetName: "Pengeluaran APD",
+        }
+      );
 
       toast.success(`File Excel berhasil dibuat: ${filename}`);
     } catch (error) {
@@ -117,7 +178,29 @@ export default function PengeluaranPekerjaForm() {
     <>
       {/* Filter Controls */}
       <div className="mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Tipe Periode Selector */}
+          <div className="w-full">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Tipe Periode
+            </label>
+            <Select
+              value={periodeType}
+              onValueChange={(value: "month" | "year") => {
+                setPeriodeType(value);
+                setSelectedPeriode(""); // Reset selected periode when type changes
+              }}
+            >
+              <SelectTrigger className="w-full h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="month">Per Bulan</SelectItem>
+                <SelectItem value="year">Per Tahun</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Periode Selector */}
           <div className="w-full">
             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -128,12 +211,14 @@ export default function PengeluaranPekerjaForm() {
                 <SelectValue placeholder="Pilih periode" />
               </SelectTrigger>
               <SelectContent>
-                {availablePeriods && availablePeriods.length > 0 ? (
-                  availablePeriods
+                {filteredPeriodeOptions && filteredPeriodeOptions.length > 0 ? (
+                  filteredPeriodeOptions
                     .filter((periode) => periode && typeof periode === "string")
                     .map((periode) => (
                       <SelectItem key={periode} value={periode}>
-                        {formatPeriodeDisplay(periode)}
+                        {periodeType === "year"
+                          ? periode
+                          : formatPeriodeDisplay(periode)}
                       </SelectItem>
                     ))
                 ) : (
@@ -207,6 +292,22 @@ export default function PengeluaranPekerjaForm() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Search Nama */}
+          <div className="w-full">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Cari Nama
+            </label>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cari nama pekerja..."
+                value={namaSearchTerm}
+                onChange={(e) => setNamaSearchTerm(e.target.value)}
+                className="pl-8 h-9 text-sm"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -256,18 +357,45 @@ export default function PengeluaranPekerjaForm() {
         <div className="text-center py-6 text-gray-500 text-sm">
           Tidak ada data untuk periode yang dipilih
         </div>
+      ) : selectedPeriode &&
+        pengeluaranData.length > 0 &&
+        filteredPengeluaranData.length === 0 ? (
+        <div className="text-center py-6 text-gray-500 text-sm">
+          Tidak ada data yang cocok dengan pencarian &quot;{namaSearchTerm}
+          &quot;
+          <br />
+          <button
+            onClick={() => setNamaSearchTerm("")}
+            className="text-blue-600 hover:text-blue-800 text-xs mt-1 underline"
+          >
+            Hapus filter pencarian
+          </button>
+        </div>
       ) : (
         selectedPeriode &&
-        pengeluaranData.length > 0 && (
+        filteredPengeluaranData.length > 0 && (
           <>
             {/* Label Laporan dan Tombol Export */}
             <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <h3 className="text-sm font-semibold text-gray-800">
-                Laporan Pengeluaran APD
-              </h3>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-800">
+                  Laporan Pengeluaran APD
+                </h3>
+                <p className="text-xs text-gray-600">
+                  Periode:{" "}
+                  {periodeType === "year"
+                    ? selectedPeriode
+                    : formatPeriodeDisplay(selectedPeriode)}
+                  {selectedApdId &&
+                    ` • APD: ${
+                      apdItems.find((item) => item.id === selectedApdId)?.name
+                    }`}
+                  {namaSearchTerm && ` • Pencarian: "${namaSearchTerm}"`}
+                </p>
+              </div>
               <Button
                 onClick={handleExportExcel}
-                disabled={isExporting || pengeluaranData.length === 0}
+                disabled={isExporting || filteredPengeluaranData.length === 0}
                 className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white"
                 size="sm"
               >
@@ -307,7 +435,7 @@ export default function PengeluaranPekerjaForm() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pengeluaranData.map((item, index) => (
+                  {filteredPengeluaranData.map((item, index) => (
                     <TableRow key={item.id}>
                       <TableCell className="text-center border text-xs p-2">
                         {index + 1}
@@ -371,7 +499,13 @@ export default function PengeluaranPekerjaForm() {
 
             {/* Footer Info */}
             <div className="mt-3 text-xs text-gray-500 text-center">
-              Total: {pengeluaranData.length} record
+              Total: {filteredPengeluaranData.length} record
+              {namaSearchTerm && (
+                <span className="text-blue-900">
+                  {" "}
+                  (difilter dari {pengeluaranData.length} total)
+                </span>
+              )}
             </div>
           </>
         )

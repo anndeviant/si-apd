@@ -7,6 +7,7 @@ import { User } from "@supabase/supabase-js";
 import { ArrowLeft } from "lucide-react";
 import Header from "@/components/header";
 import Image from "next/image";
+import SopUpload from "@/app/_components/sop-upload";
 
 export default function TentangPage() {
   const router = useRouter();
@@ -92,9 +93,11 @@ export default function TentangPage() {
             </h3>
             <div className="space-y-4 text-gray-600">
               <p className="text-justify">
-                Sistem ini dirancang oleh mahasiswa magang Poltekkes Kemenkes
-                Yogyakarta periode 2025 sebagai bagian dari proyek inovasi
-                digital di Biro K3LH Divisi Rekayasa Umum PT PAL Indonesia.
+                Sistem ini dirancang oleh mahasiswa PKL Poltekkes Kemenkes
+                Yogyakarta Program Studi Sarjana Terapan Sanitasi Lingkungan
+                Jurusan Kesehatan Lingkungan periode 2025 sebagai bagian dari
+                proyek inovasi digital di Biro K3LH Divisi Rekayasa Umum PT PAL
+                Indonesia.
               </p>
               <p className="text-justify">
                 Adapun tim kreator aplikasi ini terdiri dari:
@@ -106,9 +109,9 @@ export default function TentangPage() {
                 <li>Merita Rizki Pradani</li>
               </ul>
               <p className="text-justify">
-                Sistem ini dirancang sebagai bagian dari kegiatan magang kami.
+                Sistem ini dirancang sebagai bagian dari kegiatan PKL kami.
                 Diharapkan dapat memberikan manfaat dan mendorong terciptanya
-                sistem kerja yang lebih efektif dan terintegrasi.
+                sistem kerja yang lebih efektif dan terintegrasi
               </p>
             </div>
           </div>
@@ -223,6 +226,11 @@ export default function TentangPage() {
                 </ul>
               </div>
             </div>
+          </div>
+
+          {/* SOP Upload Section */}
+          <div className="space-y-6">
+            <SopUpload userId={user.id} />
           </div>
         </div>
 

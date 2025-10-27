@@ -350,16 +350,7 @@ export function StockOpnameForm() {
               {new Date(lastSyncInfo.created_at).toLocaleDateString("id-ID", {
                 year: "numeric",
                 month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}{" "}
-              (Periode:{" "}
-              {new Date(lastSyncInfo.periode).toLocaleDateString("id-ID", {
-                year: "numeric",
-                month: "long",
               })}
-              )
             </p>
           </div>
         )}

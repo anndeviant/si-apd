@@ -341,7 +341,7 @@ export function StockOpnameForm() {
         </div>
 
         {/* Sync Information */}
-        {lastSyncInfo && (
+        {/* {lastSyncInfo && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800">
               <span className="font-medium">
@@ -353,7 +353,7 @@ export function StockOpnameForm() {
               })}
             </p>
           </div>
-        )}
+        )} */}
 
         <Button
           onClick={handleExportExcel}

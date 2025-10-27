@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Edit, Loader2, Save, X, FileDown } from "lucide-react";
+import { Edit, Loader2, Save, X, FileDown, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,14 +41,135 @@ interface EditModalData {
   satuan: string | null;
 }
 
+interface LastBatchRekapInfo {
+  periode: string;
+  created_at: string;
+}
+
 export function StockOpnameForm() {
   const [apdItems, setApdItems] = useState<ApdItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState<EditModalData | null>(null);
   const [error, setError] = useState<string>("");
+  const [lastSyncInfo, setLastSyncInfo] = useState<LastBatchRekapInfo | null>(
+    null
+  );
+
+  // Get latest batch rekap info
+  const getLatestBatchRekapInfo =
+    async (): Promise<LastBatchRekapInfo | null> => {
+      try {
+        const { data, error } = await supabase
+          .from("apd_monthly")
+          .select("periode, created_at")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error) {
+          console.warn("No batch rekap data found:", error.message);
+          return null;
+        }
+
+        return data;
+      } catch (err) {
+        console.error("Error fetching latest batch rekap info:", err);
+        return null;
+      }
+    };
+
+  // Sync stock awal from latest batch rekap saldo akhir
+  const syncFromLatestBatchRekap = async (): Promise<boolean> => {
+    try {
+      setIsSyncing(true);
+      setError("");
+
+      // Get latest batch rekap periode
+      const latestInfo = await getLatestBatchRekapInfo();
+      if (!latestInfo) {
+        toast.error("Tidak ada data batch rekap sebelumnya untuk disinkronkan");
+        return false;
+      }
+
+      // Get saldo akhir from latest batch rekap
+      const { data: monthlyData, error: monthlyError } = await supabase
+        .from("apd_monthly")
+        .select(
+          `
+          apd_id,
+          saldo_akhir,
+          apd_items!inner(id, name, satuan)
+        `
+        )
+        .eq("periode", latestInfo.periode)
+        .order("apd_id");
+
+      if (monthlyError) {
+        throw new Error(
+          `Gagal mengambil data batch rekap: ${monthlyError.message}`
+        );
+      }
+
+      if (!monthlyData || monthlyData.length === 0) {
+        toast.error("Tidak ada data APD pada batch rekap terakhir");
+        return false;
+      }
+
+      // Update apd_items.jumlah with saldo_akhir from latest batch rekap
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const item of monthlyData) {
+        try {
+          const { error: updateError } = await supabase
+            .from("apd_items")
+            .update({ jumlah: item.saldo_akhir || 0 })
+            .eq("id", item.apd_id);
+
+          if (updateError) {
+            console.error(`Error updating APD ${item.apd_id}:`, updateError);
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        } catch (updateErr) {
+          console.error(`Error updating APD ${item.apd_id}:`, updateErr);
+          errorCount++;
+        }
+      }
+
+      // Update sync info
+      setLastSyncInfo(latestInfo);
+
+      if (errorCount === 0) {
+        toast.success(
+          `Stock awal berhasil disinkronkan untuk ${successCount} item APD`
+        );
+      } else {
+        toast.warning(
+          `${successCount} item berhasil disinkronkan, ${errorCount} item gagal`
+        );
+      }
+
+      // Reload APD items to show updated data
+      await loadApdItems();
+      return true;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Gagal melakukan sinkronisasi data";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Load APD items
   const loadApdItems = async () => {
@@ -69,8 +190,18 @@ export function StockOpnameForm() {
     }
   };
 
+  // Initialize data and sync info on mount
   useEffect(() => {
-    loadApdItems();
+    const initializeData = async () => {
+      // Load latest batch rekap info first
+      const latestInfo = await getLatestBatchRekapInfo();
+      setLastSyncInfo(latestInfo);
+
+      // Load APD items
+      await loadApdItems();
+    };
+
+    initializeData();
   }, []);
 
   const handleEditClick = (item: ApdItem) => {
@@ -154,13 +285,85 @@ export function StockOpnameForm() {
     <div className="space-y-4">
       {/* Header */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Stock Opname APD
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Stock Opname APD
+          </h3>
+          {/* Desktop Sync Button */}
+          <div className="hidden sm:block">
+            <Button
+              onClick={syncFromLatestBatchRekap}
+              disabled={isLoading || isSyncing}
+              variant="outline"
+              size="sm"
+              className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+            >
+              {isSyncing ? (
+                <>
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Sync Data
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
         <p className="text-sm text-gray-600 mb-4">
           Kelola stock awal APD yang akan digunakan sebagai dasar generate rekap
           bulanan
         </p>
+
+        {/* Mobile Sync Button */}
+        <div className="block sm:hidden mb-4">
+          <Button
+            onClick={syncFromLatestBatchRekap}
+            disabled={isLoading || isSyncing}
+            variant="outline"
+            className="w-full bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+          >
+            {isSyncing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Syncing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Sync Data
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Sync Information */}
+        {lastSyncInfo && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <span className="font-medium">
+                Saldo awal disinkronkan menurut:
+              </span>{" "}
+              {new Date(lastSyncInfo.created_at).toLocaleDateString("id-ID", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              (Periode:{" "}
+              {new Date(lastSyncInfo.periode).toLocaleDateString("id-ID", {
+                year: "numeric",
+                month: "long",
+              })}
+              )
+            </p>
+          </div>
+        )}
+
         <Button
           onClick={handleExportExcel}
           disabled={isLoading || isExporting || apdItems.length === 0}

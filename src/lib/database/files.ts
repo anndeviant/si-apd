@@ -7,7 +7,7 @@ import type { ApdFiles, CreateApdFilesData, UpdateApdFilesData } from "../types/
 
 // Get files by jenis_file and user_id
 export async function getFilesByJenis(
-    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal' | 'kpi_konsumable',
+    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal' | 'kpi_konsumable' | 'sop_document',
     userId?: string
 ): Promise<ApdFiles[]> {
     let query = supabase
@@ -31,7 +31,7 @@ export async function getFilesByJenis(
 
 // Get single file by jenis_file and user_id (latest)
 export async function getLatestFileByJenis(
-    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal' | 'kpi_konsumable',
+    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal' | 'kpi_konsumable' | 'sop_document',
     userId?: string
 ): Promise<ApdFiles | null> {
     let query = supabase
@@ -127,7 +127,7 @@ export async function verifyAndCleanupFile(fileRecord: ApdFiles): Promise<boolea
 // Upload file to storage
 export async function uploadFileToStorage(
     file: File,
-    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal' | 'kpi_konsumable',
+    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal' | 'kpi_konsumable' | 'sop_document',
     userId: string
 ): Promise<{ fileName: string; publicUrl: string }> {
     const fileExtension = file.name.split('.').pop();
@@ -179,7 +179,7 @@ export async function downloadFileFromStorage(fileName: string): Promise<Blob> {
 // Complete file upload process (upload + create record)
 export async function completeFileUpload(
     file: File,
-    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal' | 'kpi_konsumable',
+    jenisFile: 'template_mr' | 'berita_serah_terima' | 'pengajuan_apd' | 'logo_personal' | 'kpi_konsumable' | 'sop_document',
     userId: string,
     existingFileId?: number | null
 ): Promise<{ fileRecord: ApdFiles; fileName: string }> {

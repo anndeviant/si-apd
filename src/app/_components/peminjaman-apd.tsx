@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Edit, Loader2, Save, FileDown, Trash2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+  Plus,
+  Edit,
+  Loader2,
+  Save,
+  FileDown,
+  Trash2,
+  ChevronUp,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,11 +41,21 @@ import type { ApdPeminjaman } from "@/lib/types/database";
 import { exportPeminjamanApdToExcel } from "@/lib/exports";
 import { createLocalDate } from "@/lib/utils";
 
+type SortField =
+  | "nama_peminjam"
+  | "divisi"
+  | "nama_apd"
+  | "tanggal_pinjam"
+  | "tanggal_kembali";
+
 export function PeminjamanApd() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>("nama_peminjam");
 
   // Delete dialog states
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -57,6 +75,34 @@ export function PeminjamanApd() {
 
   const { formData, updateField, resetForm, setFormDataComplete } =
     usePeminjamanForm();
+
+  // Sorting functionality
+  const handleSort = (field: SortField) => {
+    setSortField(field);
+  };
+
+  // Memoized sorted data
+  const sortedPeminjamanItems = useMemo(() => {
+    return [...peminjamanItems].sort((a, b) => {
+      let valueA: string | Date;
+      let valueB: string | Date;
+
+      switch (sortField) {
+        case "tanggal_pinjam":
+        case "tanggal_kembali":
+          valueA = new Date(a[sortField] || "");
+          valueB = new Date(b[sortField] || "");
+          break;
+        default:
+          valueA = a[sortField] || "";
+          valueB = b[sortField] || "";
+      }
+
+      if (valueA < valueB) return -1;
+      if (valueA > valueB) return 1;
+      return 0;
+    });
+  }, [peminjamanItems, sortField]);
 
   const handleAddClick = () => {
     resetForm();
@@ -133,13 +179,13 @@ export function PeminjamanApd() {
     try {
       setIsExporting(true);
 
-      if (peminjamanItems.length === 0) {
+      if (sortedPeminjamanItems.length === 0) {
         toast.error("Tidak ada data untuk diexport");
         return;
       }
 
       // Transform data sesuai interface yang dibutuhkan
-      const exportData = peminjamanItems.map((item) => ({
+      const exportData = sortedPeminjamanItems.map((item) => ({
         id: item.id,
         nama_peminjam: item.nama_peminjam,
         divisi: item.divisi,
@@ -173,7 +219,9 @@ export function PeminjamanApd() {
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
           <Button
             onClick={handleExportExcel}
-            disabled={isLoading || isExporting || peminjamanItems.length === 0}
+            disabled={
+              isLoading || isExporting || sortedPeminjamanItems.length === 0
+            }
             className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 w-full sm:w-fit"
           >
             {isExporting ? (
@@ -204,7 +252,7 @@ export function PeminjamanApd() {
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
           Loading data...
         </div>
-      ) : peminjamanItems.length === 0 ? (
+      ) : sortedPeminjamanItems.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           <p className="text-sm">Belum ada data peminjaman</p>
         </div>
@@ -216,20 +264,70 @@ export function PeminjamanApd() {
                 <TableHead className="min-w-[40px] text-center border text-xs p-2">
                   NO
                 </TableHead>
-                <TableHead className="min-w-[150px] text-center border text-xs p-2">
-                  NAMA PEMINJAM
+                <TableHead className="min-w-[150px] border text-xs p-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort("nama_peminjam")}
+                    className="h-auto p-1 font-medium text-xs w-full justify-center hover:bg-gray-50"
+                  >
+                    NAMA PEMINJAM
+                    {sortField === "nama_peminjam" && (
+                      <ChevronUp className="ml-1 h-3 w-3" />
+                    )}
+                  </Button>
                 </TableHead>
-                <TableHead className="min-w-[100px] text-center border text-xs p-2">
-                  DIVISI
+                <TableHead className="min-w-[100px] border text-xs p-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort("divisi")}
+                    className="h-auto p-1 font-medium text-xs w-full justify-center hover:bg-gray-50"
+                  >
+                    DIVISI
+                    {sortField === "divisi" && (
+                      <ChevronUp className="ml-1 h-3 w-3" />
+                    )}
+                  </Button>
                 </TableHead>
-                <TableHead className="min-w-[150px] text-center border text-xs p-2">
-                  NAMA APD
+                <TableHead className="min-w-[150px] border text-xs p-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort("nama_apd")}
+                    className="h-auto p-1 font-medium text-xs w-full justify-center hover:bg-gray-50"
+                  >
+                    NAMA APD
+                    {sortField === "nama_apd" && (
+                      <ChevronUp className="ml-1 h-3 w-3" />
+                    )}
+                  </Button>
                 </TableHead>
-                <TableHead className="min-w-[100px] text-center border text-xs p-2">
-                  TGL PINJAM
+                <TableHead className="min-w-[100px] border text-xs p-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort("tanggal_pinjam")}
+                    className="h-auto p-1 font-medium text-xs w-full justify-center hover:bg-gray-50"
+                  >
+                    TGL PINJAM
+                    {sortField === "tanggal_pinjam" && (
+                      <ChevronUp className="ml-1 h-3 w-3" />
+                    )}
+                  </Button>
                 </TableHead>
-                <TableHead className="min-w-[100px] text-center border text-xs p-2">
-                  TGL KEMBALI
+                <TableHead className="min-w-[100px] border text-xs p-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort("tanggal_kembali")}
+                    className="h-auto p-1 font-medium text-xs w-full justify-center hover:bg-gray-50"
+                  >
+                    TGL KEMBALI
+                    {sortField === "tanggal_kembali" && (
+                      <ChevronUp className="ml-1 h-3 w-3" />
+                    )}
+                  </Button>
                 </TableHead>
                 <TableHead className="min-w-[80px] text-center border text-xs p-2">
                   AKSI
@@ -237,7 +335,7 @@ export function PeminjamanApd() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {peminjamanItems.map((item, index) => (
+              {sortedPeminjamanItems.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell className="text-center border text-xs p-2 font-medium">
                     {index + 1}
@@ -284,7 +382,7 @@ export function PeminjamanApd() {
 
           {/* Footer Info */}
           <div className="mt-3 text-xs text-gray-500 text-center">
-            Total: {peminjamanItems.length} record
+            Total: {sortedPeminjamanItems.length} record
           </div>
         </div>
       )}

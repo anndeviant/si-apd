@@ -124,18 +124,32 @@ export async function fetchApdDaily(filters?: {
 
 // Utility functions
 export function calculatePeriode(tanggal: string): string {
-    const date = new Date(tanggal);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}-01`;
-}
+    // Parse manual tanggal untuk menghindari timezone shift sama sekali
+    // Format input: YYYY-MM-DD, selalu return YYYY-MM-01
+    const parts = tanggal.split('-');
+    if (parts.length !== 3) {
+        console.error('Invalid date format for calculatePeriode:', tanggal);
+        return tanggal; // fallback
+    }
 
-export function formatDate(date: Date): string {
+    const year = parts[0];
+    const month = parts[1].padStart(2, '0');
+
+    // Langsung return format periode tanpa konversi Date object
+    return `${year}-${month}-01`;
+} export function formatDate(date: Date): string {
     // Menggunakan local timezone untuk menghindari masalah konversi timezone
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+// Fungsi baru untuk konversi Date ke string periode tanpa timezone shift
+export function dateToLocalPeriodeString(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}-01`;
 }
 
 // Pengeluaran Pekerja functions
@@ -242,7 +256,7 @@ export async function fetchApdMonthly(filters?: {
         .from('apd_monthly')
         .select(`
             *,
-            apd_items(id, name, satuan, jumlah)
+            apd_items(id, name, satuan)
         `)
         .order('apd_id', { ascending: true });
 
@@ -259,14 +273,9 @@ export async function fetchApdMonthly(filters?: {
         throw new Error(`Failed to fetch APD monthly data: ${error.message}`);
     }
 
-    // Sinkronisasi stock_awal dengan apd_items.jumlah (real-time)
-    const syncedData = (data || []).map(item => ({
-        ...item,
-        stock_awal: item.apd_items?.jumlah || item.stock_awal || 0,
-        saldo_akhir: (item.apd_items?.jumlah || item.stock_awal || 0) + (item.realisasi || 0) - (item.distribusi || 0)
-    }));
-
-    return syncedData;
+    // Return data apd_monthly apa adanya, tidak ada sinkronisasi real-time
+    // Stock awal menggunakan stock_awal dari database, bukan apd_items.jumlah
+    return data || [];
 }
 
 export async function getAvailableMonthlyPeriods(): Promise<string[]> {
@@ -286,38 +295,36 @@ export async function getAvailableMonthlyPeriods(): Promise<string[]> {
 }
 
 export async function generateBatchRekap(periode: string): Promise<BatchRekapData> {
-    // Untuk matching bulan, kita perlu extract year dan month dari periode
-    const periodeDate = new Date(periode);
-    const year = periodeDate.getFullYear();
-    const month = periodeDate.getMonth() + 1; // getMonth() returns 0-11, we need 1-12
+    // Parse periode string dengan safe parsing untuk menghindari timezone shift
+    const [year, month] = periode.split('-').map(Number);
 
     // Hitung bulan berikutnya untuk range query
     const nextMonth = month === 12 ? 1 : month + 1;
     const nextYear = month === 12 ? year + 1 : year;
 
     // Cek apakah ada data harian untuk periode yang dipilih (opsional - untuk informasi saja)
-    const { data: dailyCheck, error: dailyCheckError } = await supabase
+    const { error: dailyCheckError } = await supabase
         .from('apd_daily')
         .select('id, periode')
         .gte('periode', `${year}-${String(month).padStart(2, '0')}-01`)
         .lt('periode', `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`)
-        .limit(5);
-
-    if (dailyCheckError) {
-        throw new Error(`Failed to check daily data: ${dailyCheckError.message}`);
-    }
+        .limit(5); if (dailyCheckError) {
+            throw new Error(`Failed to check daily data: ${dailyCheckError.message}`);
+        }
 
     // TIDAK lagi throw error jika tidak ada data harian
     // APD yang belum ada distribusi tetap bisa dimasukkan ke rekap dengan distribusi = 0
-    console.log(`Found ${dailyCheck?.length || 0} daily records for period ${periode}`);
 
-
-    // Hitung tanggal bulan sebelumnya untuk stock_awal
-    const currentDate = new Date(periode);
-    const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-    const previousPeriode = previousMonth.toISOString().split('T')[0].substring(0, 7) + '-01';
-
-    // Query batch rekap menggunakan raw SQL untuk efisiensi
+    // Hitung periode bulan sebelumnya untuk stock_awal - TANPA timezone shift
+    let previousPeriode: string;
+    if (month === 1) {
+        // Jika Januari, bulan sebelumnya adalah Desember tahun lalu
+        previousPeriode = `${year - 1}-12-01`;
+    } else {
+        // Bulan sebelumnya dalam tahun yang sama
+        const prevMonth = String(month - 1).padStart(2, '0');
+        previousPeriode = `${year}-${prevMonth}-01`;
+    }    // Query batch rekap menggunakan raw SQL untuk efisiensi
     const { data, error } = await supabase.rpc('generate_batch_rekap', {
         target_periode: periode,
         previous_periode: previousPeriode
@@ -334,30 +341,25 @@ export async function generateBatchRekap(periode: string): Promise<BatchRekapDat
 // Fallback method jika stored procedure belum tersedia
 async function generateBatchRekapFallback(periode: string): Promise<BatchRekapData> {
     try {
-        // Untuk matching bulan, kita perlu extract year dan month dari periode
-        const periodeDate = new Date(periode);
-        const year = periodeDate.getFullYear();
-        const month = periodeDate.getMonth() + 1;
+        // Parse periode string dengan safe parsing untuk menghindari timezone shift
+        const [year, month] = periode.split('-').map(Number);
 
         // Hitung bulan berikutnya untuk range query
         const nextMonth = month === 12 ? 1 : month + 1;
         const nextYear = month === 12 ? year + 1 : year;
 
         // Cek data harian untuk informasi (tidak wajib ada)
-        const { data: dailyCheck, error: dailyError } = await supabase
+        const { error: dailyError } = await supabase
             .from('apd_daily')
             .select('id')
             .gte('periode', `${year}-${String(month).padStart(2, '0')}-01`)
             .lt('periode', `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`)
-            .limit(1);
-
-        if (dailyError) {
-            throw new Error(`Failed to check daily data: ${dailyError.message}`);
-        }
+            .limit(1); if (dailyError) {
+                throw new Error(`Failed to check daily data: ${dailyError.message}`);
+            }
 
         // TIDAK lagi throw error jika tidak ada data harian
         // APD yang belum ada distribusi tetap bisa dimasukkan ke rekap dengan distribusi = 0
-        console.log(`Fallback: Found ${dailyCheck?.length || 0} daily records for period ${periode}`);
 
         // Ambil SEMUA APD items (tidak hanya yang ada di daily)
         // Ini memastikan APD baru atau yang belum pernah didistribusi juga masuk ke rekap
@@ -391,14 +393,6 @@ async function generateBatchRekapFallback(periode: string): Promise<BatchRekapDa
 
             const realisasi = 0; // Default 0, bisa edit manual
             const saldoAkhir = stockAwal + realisasi - totalDistribusi;
-
-            // Log untuk debugging
-            console.log(`Processing APD: ${item.name}`, {
-                stockAwal,
-                totalDistribusi,
-                saldoAkhir,
-                dailyRecords: dailyTotal?.length || 0
-            });
 
             // Cek apakah sudah ada record untuk periode ini
             const { data: existingRecord } = await supabase
@@ -477,8 +471,6 @@ export async function updateApdMonthly(
     id: number,
     updateData: UpdateApdMonthlyData
 ): Promise<ApdMonthlyWithRelations> {
-    console.log('updateApdMonthly called with:', { id, updateData });
-
     // Jika mengupdate stock_awal, realisasi atau distribusi, hitung ulang saldo_akhir
     if (updateData.stock_awal !== undefined || updateData.realisasi !== undefined || updateData.distribusi !== undefined) {
         // Ambil data current untuk mendapatkan nilai yang tidak diupdate
@@ -497,8 +489,6 @@ export async function updateApdMonthly(
         }
     }
 
-    console.log('Final updateData to send to database:', updateData);
-
     const { data, error } = await supabase
         .from('apd_monthly')
         .update(updateData)
@@ -510,11 +500,9 @@ export async function updateApdMonthly(
         .single();
 
     if (error) {
-        console.error('Database update error:', error);
         throw new Error(`Failed to update APD monthly data: ${error.message}`);
     }
 
-    console.log('Database update successful:', data);
     return data;
 }
 

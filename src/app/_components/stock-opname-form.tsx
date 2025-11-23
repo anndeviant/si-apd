@@ -41,11 +41,6 @@ interface EditModalData {
   satuan: string | null;
 }
 
-interface LastBatchRekapInfo {
-  periode: string;
-  created_at: string;
-}
-
 export function StockOpnameForm() {
   const [apdItems, setApdItems] = useState<ApdItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,32 +50,7 @@ export function StockOpnameForm() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState<EditModalData | null>(null);
   const [error, setError] = useState<string>("");
-  const [lastSyncInfo, setLastSyncInfo] = useState<LastBatchRekapInfo | null>(
-    null
-  );
-
-  // Get latest batch rekap info
-  const getLatestBatchRekapInfo =
-    async (): Promise<LastBatchRekapInfo | null> => {
-      try {
-        const { data, error } = await supabase
-          .from("apd_monthly")
-          .select("periode, created_at")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
-
-        if (error) {
-          console.warn("No batch rekap data found:", error.message);
-          return null;
-        }
-
-        return data;
-      } catch (err) {
-        console.error("Error fetching latest batch rekap info:", err);
-        return null;
-      }
-    };
+  const [refreshKey, setRefreshKey] = useState<number>(0); // Force re-render key
 
   // Sync stock awal from latest batch rekap saldo akhir
   const syncFromLatestBatchRekap = async (): Promise<boolean> => {
@@ -89,11 +59,20 @@ export function StockOpnameForm() {
       setError("");
 
       // Get latest batch rekap periode
-      const latestInfo = await getLatestBatchRekapInfo();
-      if (!latestInfo) {
+      const { data: latestInfo, error: infoError } = await supabase
+        .from("apd_monthly")
+        .select("periode, created_at")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (infoError || !latestInfo) {
+        console.warn("No batch rekap data found:", infoError?.message);
         toast.error("Tidak ada data batch rekap sebelumnya untuk disinkronkan");
         return false;
       }
+
+      console.log("Latest batch rekap info:", latestInfo);
 
       // Get saldo akhir from latest batch rekap
       const { data: monthlyData, error: monthlyError } = await supabase
@@ -102,11 +81,13 @@ export function StockOpnameForm() {
           `
           apd_id,
           saldo_akhir,
-          apd_items!inner(id, name, satuan)
+          apd_items(id, name, satuan)
         `
         )
         .eq("periode", latestInfo.periode)
         .order("apd_id");
+
+      console.log("Monthly data query result:", { monthlyData, monthlyError });
 
       if (monthlyError) {
         throw new Error(
@@ -123,17 +104,60 @@ export function StockOpnameForm() {
       let successCount = 0;
       let errorCount = 0;
 
+      console.log("Syncing data from latest batch rekap:", {
+        periode: latestInfo.periode,
+        itemCount: monthlyData.length,
+      });
+
       for (const item of monthlyData) {
         try {
-          const { error: updateError } = await supabase
+          // Handle case where apd_items might be an array or object
+          let apdName = "Unknown APD";
+          const apdItems = item.apd_items as unknown;
+
+          if (Array.isArray(apdItems) && apdItems.length > 0) {
+            apdName = apdItems[0].name;
+          } else if (
+            apdItems &&
+            typeof apdItems === "object" &&
+            "name" in apdItems
+          ) {
+            apdName = (apdItems as { name: string }).name;
+          }
+
+          console.log(
+            `Updating APD ${item.apd_id} (${apdName}): saldo_akhir = ${item.saldo_akhir}, updating jumlah to = ${item.saldo_akhir}`
+          );
+
+          const { data: updateResult, error: updateError } = await supabase
             .from("apd_items")
             .update({ jumlah: item.saldo_akhir || 0 })
-            .eq("id", item.apd_id);
+            .eq("id", item.apd_id)
+            .select("id, name, jumlah");
+
+          console.log(`Update result for APD ${item.apd_id}:`, {
+            updateResult,
+            updateError,
+            beforeUpdate: `jumlah should be updated to ${item.saldo_akhir}`,
+          });
+
+          // Verify update berhasil dengan query terpisah
+          const { data: verifyData } = await supabase
+            .from("apd_items")
+            .select("id, name, jumlah")
+            .eq("id", item.apd_id)
+            .single();
+
+          console.log(`Verification query for APD ${item.apd_id}:`, verifyData);
 
           if (updateError) {
             console.error(`Error updating APD ${item.apd_id}:`, updateError);
             errorCount++;
           } else {
+            console.log(
+              `Successfully updated APD ${item.apd_id}:`,
+              updateResult
+            );
             successCount++;
           }
         } catch (updateErr) {
@@ -141,9 +165,6 @@ export function StockOpnameForm() {
           errorCount++;
         }
       }
-
-      // Update sync info
-      setLastSyncInfo(latestInfo);
 
       if (errorCount === 0) {
         toast.success(
@@ -155,8 +176,34 @@ export function StockOpnameForm() {
         );
       }
 
-      // Reload APD items to show updated data
-      await loadApdItems();
+      // Force reload APD items dan refresh UI
+      console.log("Sync completed, reloading APD items...");
+
+      // Clear state terlebih dahulu untuk force re-render
+      setApdItems([]);
+      setRefreshKey((prev) => prev + 1); // Force re-render
+
+      // Wait a bit lalu reload data
+      setTimeout(async () => {
+        try {
+          const { data: freshData, error: freshError } = await supabase
+            .from("apd_items")
+            .select("id, name, satuan, jumlah")
+            .order("name");
+
+          console.log("Fresh data after sync:", freshData);
+
+          if (!freshError && freshData) {
+            setApdItems(freshData);
+            console.log("APD items updated in UI");
+          }
+        } catch (err) {
+          console.error("Error loading fresh data:", err);
+          // Fallback ke loadApdItems original
+          await loadApdItems();
+        }
+      }, 200);
+
       return true;
     } catch (err) {
       const errorMessage =
@@ -181,6 +228,8 @@ export function StockOpnameForm() {
         .order("name");
 
       if (error) throw error;
+
+      console.log("Loaded APD items:", data);
       setApdItems(data || []);
     } catch (err) {
       setError("Gagal memuat data APD");
@@ -190,18 +239,9 @@ export function StockOpnameForm() {
     }
   };
 
-  // Initialize data and sync info on mount
+  // Initialize data on mount
   useEffect(() => {
-    const initializeData = async () => {
-      // Load latest batch rekap info first
-      const latestInfo = await getLatestBatchRekapInfo();
-      setLastSyncInfo(latestInfo);
-
-      // Load APD items
-      await loadApdItems();
-    };
-
-    initializeData();
+    loadApdItems();
   }, []);
 
   const handleEditClick = (item: ApdItem) => {
@@ -340,21 +380,6 @@ export function StockOpnameForm() {
           </Button>
         </div>
 
-        {/* Sync Information */}
-        {/* {lastSyncInfo && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <span className="font-medium">
-                Saldo awal disinkronkan menurut:
-              </span>{" "}
-              {new Date(lastSyncInfo.created_at).toLocaleDateString("id-ID", {
-                year: "numeric",
-                month: "long",
-              })}
-            </p>
-          </div>
-        )} */}
-
         <Button
           onClick={handleExportExcel}
           disabled={isLoading || isExporting || apdItems.length === 0}
@@ -423,9 +448,9 @@ export function StockOpnameForm() {
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody key={refreshKey}>
               {apdItems.map((item, index) => (
-                <TableRow key={item.id}>
+                <TableRow key={`${item.id}-${refreshKey}`}>
                   <TableCell className="text-center border text-xs p-2 font-medium">
                     {index + 1}
                   </TableCell>

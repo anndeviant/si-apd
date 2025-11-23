@@ -5,7 +5,8 @@ import {
     fetchApdMonthly,
     updateApdMonthly,
     getAvailableMonthlyPeriods,
-    calculatePeriode
+    calculatePeriode,
+    dateToLocalPeriodeString
 } from '@/lib/database/apd';
 import { exportBatchRekapToExcel } from '@/lib/exports';
 import type {
@@ -52,7 +53,8 @@ export function useBatchRekap() {
             setIsLoading(true);
             setError(null);
 
-            const periodeString = calculatePeriode(formData.periode.toISOString().split('T')[0]);
+            // Gunakan fungsi baru yang timezone-safe
+            const periodeString = dateToLocalPeriodeString(formData.periode);
             const data = await fetchApdMonthly({ periode: periodeString });
             setMonthlyData(data);
         } catch (err) {
@@ -85,10 +87,9 @@ export function useBatchRekap() {
             setIsGenerating(true);
             setError(null);
 
-            const periodeString = calculatePeriode(formData.periode.toISOString().split('T')[0]);
-            await generateBatchRekap(periodeString);
-
-            toast.success('Batch rekap berhasil!');
+            // Gunakan fungsi baru yang timezone-safe
+            const periodeString = dateToLocalPeriodeString(formData.periode);
+            await generateBatchRekap(periodeString); toast.success('Batch rekap berhasil!');
 
             // Reload data after successful generation (akan otomatis sinkron dengan apd_items.jumlah)
             await loadMonthlyData();
@@ -108,7 +109,7 @@ export function useBatchRekap() {
         setEditingRow(row.id);
         setEditFormData({
             id: row.id,
-            stock_awal: row.apd_items?.jumlah || 0, // Real-time dari apd_items
+            stock_awal: row.stock_awal || 0, // Dari database apd_monthly.stock_awal
             realisasi: row.realisasi || 0
         });
     };
@@ -132,7 +133,6 @@ export function useBatchRekap() {
 
     const saveEdit = async (): Promise<boolean> => {
         if (!editFormData) {
-            console.log('No editFormData available');
             return false;
         }
 
@@ -140,15 +140,12 @@ export function useBatchRekap() {
             setIsUpdating(true);
             setError(null);
 
-            console.log('Saving edit data:', editFormData);
             const updateData: UpdateApdMonthlyData = {
                 stock_awal: editFormData.stock_awal,
                 realisasi: editFormData.realisasi
             };
-            console.log('Update data:', updateData);
 
             await updateApdMonthly(editFormData.id, updateData);
-            console.log('Update completed successfully');
 
             // Update local state
             setMonthlyData(prev =>
@@ -181,18 +178,15 @@ export function useBatchRekap() {
             setIsUpdating(true);
             setError(null);
 
-            console.log('saveEditWithData called with:', { id, updateData });
             await updateApdMonthly(id, updateData);
-            console.log('Database update completed');
 
-            // Refresh data dari database untuk mendapatkan nilai terbaru (termasuk sinkronisasi stock_awal)
+            // Refresh data dari database untuk mendapatkan nilai terbaru
             await loadMonthlyData();
 
             toast.success('Data berhasil diupdate!');
             return true;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to update data';
-            console.error('Save error:', errorMessage);
             setError(errorMessage);
             return false;
         } finally {
@@ -205,16 +199,36 @@ export function useBatchRekap() {
     };
 
     const formatPeriodeName = (periode: string): string => {
-        const date = new Date(periode);
-        // Handle invalid dates
-        if (isNaN(date.getTime())) {
+        // Parse manual untuk menghindari timezone shift
+        const parts = periode.split('-');
+        if (parts.length < 2) {
             return 'Invalid Date';
         }
+
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1; // 0-indexed untuk array
+
+        if (isNaN(year) || isNaN(month) || month < 0 || month > 11) {
+            return 'Invalid Date';
+        }
+
         const monthNames = [
             'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
         ];
-        return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+        return `${monthNames[month]} ${year}`;
+    };
+
+    // Fungsi baru untuk format tanggal dari Date object tanpa timezone shift
+    const formatPeriodeNameFromDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = date.getMonth(); // sudah 0-indexed
+
+        const monthNames = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+        return `${monthNames[month]} ${year}`;
     };
 
     const formatPeriodeForExcel = (date: Date): string => {
@@ -260,6 +274,7 @@ export function useBatchRekap() {
         monthlyData,
         availablePeriods,
         formatPeriodeName,
+        formatPeriodeNameFromDate,
 
         // Loading states
         isGenerating,

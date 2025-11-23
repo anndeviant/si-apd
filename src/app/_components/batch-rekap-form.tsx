@@ -51,6 +51,7 @@ export function BatchRekapForm() {
     updatePeriode,
     monthlyData,
     formatPeriodeName,
+    formatPeriodeNameFromDate,
     isGenerating,
     isLoading,
     isUpdating,
@@ -75,12 +76,12 @@ export function BatchRekapForm() {
   };
 
   const handleEditClick = (item: ApdMonthlyWithRelations) => {
-    // Set data for local modal state - stock awal dari apd_items.jumlah (real-time)
+    // Set data for local modal state - stock awal dari apd_monthly.stock_awal (database)
     setEditData({
       id: item.id,
       nama: item.apd_items?.name || "-",
       realisasi: item.realisasi || 0,
-      stockAwal: item.apd_items?.jumlah || 0, // Real-time dari apd_items
+      stockAwal: item.stock_awal || 0, // Dari database apd_monthly.stock_awal
       distribusi: item.distribusi || 0, // Distribusi dari Pengeluaran APD
     });
 
@@ -91,8 +92,6 @@ export function BatchRekapForm() {
 
   const handleSaveEdit = async () => {
     if (!editData) return;
-
-    console.log("Saving edit data (realisasi only):", editData);
 
     // Update hook state first (hanya realisasi)
     updateEditFormData("realisasi", editData.realisasi);
@@ -178,7 +177,7 @@ export function BatchRekapForm() {
                   <AlertDialogDescription>
                     Apakah Anda yakin ingin generate rekap untuk periode{" "}
                     <strong>
-                      {formatPeriodeName(formData.periode.toISOString())}
+                      {formatPeriodeNameFromDate(formData.periode)}
                     </strong>
                     ?
                   </AlertDialogDescription>
@@ -242,7 +241,7 @@ export function BatchRekapForm() {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-gray-800">
-            Laporan Neraca - {formatPeriodeName(formData.periode.toISOString())}
+            Laporan Neraca - {formatPeriodeNameFromDate(formData.periode)}
           </h3>
         </div>
 
